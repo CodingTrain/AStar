@@ -1,3 +1,5 @@
+//Set to true to allow diagonal moves
+//This will also switch from Manhattan to Euclidean distance measures
 var allowDiagonals = false;
 
 function removeFromArray(arr, elt) {
@@ -8,18 +10,23 @@ function removeFromArray(arr, elt) {
   }
 }
 
-function visualDist(a,b){
-	return dist(a.i, a.j, b.i, b.j);
+//This function returns a measure of aesthetic preference for
+//use when ordering the openSet. It is used to prioritise
+//between equal standard heuristic scores. It can therefore
+//be anything you like without affecting the ability to find
+//a minimum cost path.
+function visualDist(a, b) {
+  return dist(a.i, a.j, b.i, b.j);
 }
 
 function heuristic(a, b) {
   var d;
-	if( allowDiagonals ){
-		d = dist(a.i, a.j, b.i, b.j);
-	}else{
-		d = abs(a.i - b.i) + abs(a.j - b.j);
-	}
-	return d;
+  if (allowDiagonals) {
+    d = dist(a.i, a.j, b.i, b.j);
+  } else {
+    d = abs(a.i - b.i) + abs(a.j - b.j);
+  }
+  return d;
 }
 
 var cols = 50;
@@ -30,7 +37,8 @@ var openSet = [];
 var closedSet = [];
 var start;
 var end;
-var w, h;
+var w,
+  h;
 var path = [];
 
 function Spot(i, j) {
@@ -55,7 +63,7 @@ function Spot(i, j) {
       fill(0);
       noStroke();
       ellipse(this.i * w + w / 2, this.j * h + h / 2, w / 2, h / 2);
-    }else{
+    } else {
       rect(this.i * w, this.j * h, w - 1, h - 1);
     }
   }
@@ -75,7 +83,7 @@ function Spot(i, j) {
     if (j > 0) {
       this.neighbors.push(grid[i][j - 1]);
     }
-    if( allowDiagonals ){
+    if (allowDiagonals) {
       if (i > 0 && j > 0) {
         this.neighbors.push(grid[i - 1][j - 1]);
       }
@@ -139,17 +147,25 @@ function draw() {
   if (openSet.length > 0) {
 
     var winner = 0;
-    for (var i = 0; i < openSet.length; i++) {
+    for (var i = 1; i < openSet.length; i++) {
       if (openSet[i].f < openSet[winner].f) {
         winner = i;
       }
-      if( openSet[i].f == openSet[winner].f){
-        if( allowDiagonals ){
-          if( openSet[i].g > openSet[winner].g ){
-            winner = i;
-          }
-        }else{
-          if( openSet[i].vh < openSet[winner].vh ){
+      //if we have a tie according to the standard heuristic
+      if (openSet[i].f == openSet[winner].f) {
+        //Prefer to explore options with longer known paths (closer to goal)
+        if (openSet[i].g > openSet[winner].g) {
+          winner = i;
+        }
+        //if we're using Manhattan distances then also break ties
+        //of the known distance measure by using the visual heuristic.
+        //This ensures that the search concentrates on routes that look
+        //more direct. This makes no difference to the actual path distance
+        //but improves the look for things like games or more closely
+        //approximates the real shortest path if using grid sampled data for
+        //planning natural paths.
+        if (!allowDiagonals) {
+          if (openSet[i].g == openSet[winner].g && openSet[i].vh < openSet[winner].vh) {
             winner = i;
           }
         }
@@ -187,20 +203,22 @@ function draw() {
 
         if (newPath) {
           neighbor.h = heuristic(neighbor, end);
-          neighbor.vh = visualDist(neighbor, end);
+          if (allowDiagonals) {
+            neighbor.vh = visualDist(neighbor, end);
+          }
           neighbor.f = neighbor.g + neighbor.h;
           neighbor.previous = current;
         }
       }
 
     }
-    // we can keep going
+  // we can keep going
   } else {
     console.log('no solution');
     noLoop();
     return;
 
-    // no solution
+  // no solution
   }
 
   background(255);
@@ -243,7 +261,5 @@ function draw() {
     vertex(path[i].i * w + w / 2, path[i].j * h + h / 2);
   }
   endShape();
-
-
 
 }
