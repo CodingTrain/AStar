@@ -1,3 +1,5 @@
+var allowDiagonals = false;
+
 function removeFromArray(arr, elt) {
   for (var i = arr.length - 1; i >= 0; i--) {
     if (arr[i] == elt) {
@@ -6,12 +8,19 @@ function removeFromArray(arr, elt) {
   }
 }
 
-function heuristic(a, b) {
-  var d = dist(a.i, a.j, b.i, b.j);
-  // var d = abs(a.i - b.i) + abs(a.j - b.j);
-  return d;
+function visualDist(a,b){
+	return dist(a.i, a.j, b.i, b.j);
 }
 
+function heuristic(a, b) {
+  var d;
+	if( allowDiagonals ){
+		d = dist(a.i, a.j, b.i, b.j);
+	}else{
+		d = abs(a.i - b.i) + abs(a.j - b.j);
+	}
+	return d;
+}
 
 var cols = 50;
 var rows = 50;
@@ -30,6 +39,7 @@ function Spot(i, j) {
   this.f = 0;
   this.g = 0;
   this.h = 0;
+  this.vh = 0; //visual heuristic for tie-breaking
   this.neighbors = [];
   this.previous = undefined;
   this.wall = false;
@@ -40,13 +50,14 @@ function Spot(i, j) {
 
 
   this.show = function(col) {
-    //fill(col);
+    fill(col);
     if (this.wall) {
       fill(0);
       noStroke();
       ellipse(this.i * w + w / 2, this.j * h + h / 2, w / 2, h / 2);
+    }else{
+      rect(this.i * w, this.j * h, w - 1, h - 1);
     }
-    //rect(this.i * w, this.j * h, w - 1, h - 1);
   }
 
   this.addNeighbors = function(grid) {
@@ -64,17 +75,19 @@ function Spot(i, j) {
     if (j > 0) {
       this.neighbors.push(grid[i][j - 1]);
     }
-    if (i > 0 && j > 0) {
-      this.neighbors.push(grid[i - 1][j - 1]);
-    }
-    if (i < cols - 1 && j > 0) {
-      this.neighbors.push(grid[i + 1][j - 1]);
-    }
-    if (i > 0 && j < rows - 1) {
-      this.neighbors.push(grid[i - 1][j + 1]);
-    }
-    if (i < cols - 1 && j < rows - 1) {
-      this.neighbors.push(grid[i + 1][j + 1]);
+    if( allowDiagonals ){
+      if (i > 0 && j > 0) {
+        this.neighbors.push(grid[i - 1][j - 1]);
+      }
+      if (i < cols - 1 && j > 0) {
+        this.neighbors.push(grid[i + 1][j - 1]);
+      }
+      if (i > 0 && j < rows - 1) {
+        this.neighbors.push(grid[i - 1][j + 1]);
+      }
+      if (i < cols - 1 && j < rows - 1) {
+        this.neighbors.push(grid[i + 1][j + 1]);
+      }
     }
   }
 
@@ -130,6 +143,17 @@ function draw() {
       if (openSet[i].f < openSet[winner].f) {
         winner = i;
       }
+      if( openSet[i].f == openSet[winner].f){
+        if( allowDiagonals ){
+          if( openSet[i].g > openSet[winner].g ){
+            winner = i;
+          }
+        }else{
+          if( openSet[i].vh < openSet[winner].vh ){
+            winner = i;
+          }
+        }
+      }
     }
     var current = openSet[winner];
 
@@ -163,6 +187,7 @@ function draw() {
 
         if (newPath) {
           neighbor.h = heuristic(neighbor, end);
+          neighbor.vh = visualDist(neighbor, end);
           neighbor.f = neighbor.g + neighbor.h;
           neighbor.previous = current;
         }
@@ -188,11 +213,11 @@ function draw() {
 
 
   for (var i = 0; i < closedSet.length; i++) {
-    //closedSet[i].show(color(255, 0, 0));
+    closedSet[i].show(color(255, 0, 0));
   }
 
   for (var i = 0; i < openSet.length; i++) {
-    //openSet[i].show(color(0, 255, 0));
+    openSet[i].show(color(0, 255, 0));
   }
 
 
