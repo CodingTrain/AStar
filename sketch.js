@@ -96,6 +96,7 @@ function draw() {
     if (current === end) {
       noLoop();
       console.log("DONE!");
+      createP('Completed!');
     }
 
     // Best option moves from openSet to closedSet
@@ -136,6 +137,7 @@ function draw() {
   // Uh oh, no solution
   } else {
     console.log('no solution');
+    createP('No solution.');
     noLoop();
     return;
   }
