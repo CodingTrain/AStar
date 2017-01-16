@@ -23,10 +23,10 @@ function Spot(i, j, x, y ,width, height, isWall) {
     this.wall = isWall;
 
     this.show = function(color) {
+        noStroke();
         fill(color);
         if (this.wall) {
             fill(0);
-            noStroke();
             ellipse(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, this.height / 2);
         } else {
             rect(this.x, this.y, this.width - 1, this.height - 1);
