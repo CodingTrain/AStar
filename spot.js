@@ -33,8 +33,24 @@ function Spot(i, j, isWall) {
             fill(0);
             noStroke();
             ellipse(this.i * w + w / 2, this.j * h + h / 2, w / 2, h / 2);
+
+            stroke(0);
+            strokeWeight(w / 2);
+            // Draw line between this and bottom/right neighbor walls
+            for(var i=0; i < this.neighbors.length; i++)
+            {
+                var neighbor = this.neighbors[i];
+                if(neighbor.wall &&
+                    ((neighbor.i > this.i && neighbor.j == this.j) ||
+                    (neighbor.i == this.i && neighbor.j > this.j)))
+                {
+                    line(this.i * w + w / 2, this.j * h + h / 2,
+                        neighbor.i* w + w / 2, neighbor.j * h + h / 2);
+                }
+            }
         } else if (col) {
             fill(col);
+            strokeWeight(0);
             rect(this.i * w, this.j * h, w, h);
         }
     }
