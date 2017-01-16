@@ -44,8 +44,14 @@ var w, h;
 var path = [];
 
 function setup() {
-  createCanvas(400, 400);
   console.log('A*');
+
+  if (getURL().toLowerCase().indexOf("fullscreen") === -1) {
+    createCanvas(400, 400);
+  } else {
+    var sz = min(windowWidth, windowHeight);
+    createCanvas(sz, sz);
+  }
 
   // Grid cell size
   w = width / cols;
@@ -100,6 +106,14 @@ function draw() {
       createP('Completed!');
     }
 
+    if ((current === grid[cols - 2][rows - 1])
+        || (current === grid[cols - 1][rows - 2])
+        || (current === grid[cols - 2][rows - 2])) {
+      console.log("ALMOST DONE!");
+      createP('Almost Completed!');
+      console.log("current");console.log(current);
+    }
+
     // Best option moves from openSet to closedSet
     removeFromArray(openSet, current);
     closedSet.push(current);
@@ -110,7 +124,7 @@ function draw() {
       var neighbor = neighbors[i];
 
       // Valid next spot?
-      if (!closedSet.includes(neighbor) && !neighbor.wall) {
+      if (!closedSet.includes(neighbor)) {
         var tempG = current.g + heuristic(neighbor, current);
 
         // Is this a better path than before?
@@ -184,7 +198,4 @@ function draw() {
     vertex(path[i].i * w + w / 2, path[i].j * h + h / 2);
   }
   endShape();
-
-
-
 }
