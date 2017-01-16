@@ -40,6 +40,29 @@ var end;
 // Width and height of each cell of grid
 var w, h;
 
+// % of cells that are walls
+var percentWalls = 0.3;
+
+// can the path go between the corners of two
+// walls located diagonally next to each other
+var canPassThroughCorners = false;
+
+// function for drawing a wall
+function drawWall(shape) {
+  fill(0);
+  noStroke();
+
+  // var x = shape.i * w + w / 2;
+  // var y = shape.j * h + h / 2;
+  // ellipse(x, y, w, h);
+
+  var x = shape.i * w;
+  var y = shape.j * h;
+  rect(x, y, w, h);
+}
+
+
+
 // Timer
 var t;
 var timings = {};
