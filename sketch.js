@@ -106,14 +106,6 @@ function draw() {
       createP('Completed!');
     }
 
-    if ((current === grid[cols - 2][rows - 1])
-        || (current === grid[cols - 1][rows - 2])
-        || (current === grid[cols - 2][rows - 2])) {
-      console.log("ALMOST DONE!");
-      createP('Almost Completed!');
-      console.log("current");console.log(current);
-    }
-
     // Best option moves from openSet to closedSet
     removeFromArray(openSet, current);
     closedSet.push(current);
