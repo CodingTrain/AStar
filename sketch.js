@@ -5,6 +5,10 @@
 // Part 2: https://youtu.be/EaZxUCWAjb0
 // Part 3: https://youtu.be/jwRT4PCT6RU
 
+//Set to true to allow diagonal moves
+//This will also switch from Manhattan to Euclidean distance measures
+var allowDiagonals = true;
+
 // Function to delete element from the array
 function removeFromArray(arr, elt) {
   // Could use indexOf here instead to be more efficient
@@ -15,10 +19,25 @@ function removeFromArray(arr, elt) {
   }
 }
 
+//This function returns a measure of aesthetic preference for
+//use when ordering the openSet. It is used to prioritise
+//between equal standard heuristic scores. It can therefore
+//be anything you like without affecting the ability to find
+//a minimum cost path.
+
+function visualDist(a, b) {
+  return dist(a.i, a.j, b.i, b.j);
+}
+
 // An educated guess of how far it is between two points
+
 function heuristic(a, b) {
-  var d = dist(a.i, a.j, b.i, b.j);
-  // var d = abs(a.i - b.i) + abs(a.j - b.j);
+  var d;
+  if (allowDiagonals) {
+    d = dist(a.i, a.j, b.i, b.j);
+  } else {
+    d = abs(a.i - b.i) + abs(a.j - b.j);
+  }
   return d;
 }
 
@@ -58,14 +77,14 @@ function setup() {
 
   for (var i = 0; i < cols; i++) {
     for (var j = 0; j < rows; j++) {
-      grid[i][j] = new Spot(i, j);
+      grid[i][j] = new Spot(i, j, random(1.0) < (allowDiagonals ? 0.4 : 0.2));
     }
   }
 
   // All the neighbors
   for (var i = 0; i < cols; i++) {
     for (var j = 0; j < rows; j++) {
-      grid[i][j].addNeighbors(grid);
+      grid[i][j].addNeighbors(grid, allowDiagonals);
     }
   }
 
@@ -87,9 +106,28 @@ function draw() {
 
     // Best next option
     var winner = 0;
-    for (var i = 0; i < openSet.length; i++) {
+    for (var i = 1; i < openSet.length; i++) {
       if (openSet[i].f < openSet[winner].f) {
         winner = i;
+      }
+      //if we have a tie according to the standard heuristic
+      if (openSet[i].f == openSet[winner].f) {
+        //Prefer to explore options with longer known paths (closer to goal)
+        if (openSet[i].g > openSet[winner].g) {
+          winner = i;
+        }
+        //if we're using Manhattan distances then also break ties
+        //of the known distance measure by using the visual heuristic.
+        //This ensures that the search concentrates on routes that look
+        //more direct. This makes no difference to the actual path distance
+        //but improves the look for things like games or more closely
+        //approximates the real shortest path if using grid sampled data for
+        //planning natural paths.
+        if (!allowDiagonals) {
+          if (openSet[i].g == openSet[winner].g && openSet[i].vh < openSet[winner].vh) {
+            winner = i;
+          }
+        }
       }
     }
     var current = openSet[winner];
@@ -130,6 +168,9 @@ function draw() {
         // Yes, it's a better path
         if (newPath) {
           neighbor.h = heuristic(neighbor, end);
+          if (allowDiagonals) {
+            neighbor.vh = visualDist(neighbor, end);
+          }
           neighbor.f = neighbor.g + neighbor.h;
           neighbor.previous = current;
         }
@@ -185,7 +226,5 @@ function draw() {
     vertex(path[i].i * w + w / 2, path[i].j * h + h / 2);
   }
   endShape();
-
-
 
 }
