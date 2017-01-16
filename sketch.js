@@ -84,19 +84,6 @@ function setup() {
     sum: millis() - t,
     count: 1
   };
-  t = millis();
-
-  // All the neighbors
-  for (var i = 0; i < cols; i++) {
-    for (var j = 0; j < rows; j++) {
-      grid[i][j].addNeighbors(grid);
-    }
-  }
-
-  timings.B = {
-    sum: millis() - t,
-    count: 1
-  };
 
   // openSet starts with beginning only
   openSet.push(start);
@@ -136,6 +123,9 @@ function draw() {
     closedSet.push(current);
 
     // Check all the neighbors
+    if (!current.neighbors) {
+      current.addNeighbors(grid)
+    }
     var neighbors = current.neighbors;
     for (var i = 0; i < neighbors.length; i++) {
       var neighbor = neighbors[i];
