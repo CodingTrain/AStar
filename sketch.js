@@ -62,19 +62,18 @@ function setup() {
     }
   }
 
+  // Start and end
+  start = grid[0][0];
+  end = grid[cols - 1][rows - 1];
+  start.wall = false;
+  end.wall = false;
+
   // All the neighbors
   for (var i = 0; i < cols; i++) {
     for (var j = 0; j < rows; j++) {
       grid[i][j].addNeighbors(grid);
     }
   }
-
-
-  // Start and end
-  start = grid[0][0];
-  end = grid[cols - 1][rows - 1];
-  start.wall = false;
-  end.wall = false;
 
   // openSet starts with beginning only
   openSet.push(start);
