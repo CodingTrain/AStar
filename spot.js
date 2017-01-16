@@ -18,7 +18,7 @@ function Spot(i, j) {
   this.h = 0;
 
   // Neighbors
-  this.neighbors = [];
+  this.neighbors = undefined;
 
   // Where did I come from?
   this.previous = undefined;
@@ -44,6 +44,7 @@ function Spot(i, j) {
 
   // Figure out who my neighbors are
   this.addNeighbors = function(grid) {
+    this.neighbors = [];
     var i = this.i;
     var j = this.j;
 

@@ -40,6 +40,10 @@ var end;
 // Width and height of each cell of grid
 var w, h;
 
+// Timer
+var t;
+var timings = {};
+
 // The road taken
 var path = [];
 
@@ -56,6 +60,8 @@ function setup() {
   // Grid cell size
   w = width / cols;
   h = height / rows;
+
+  t = millis();
 
   // Making a 2D array
   for (var i = 0; i < cols; i++) {
@@ -74,12 +80,23 @@ function setup() {
   start.wall = false;
   end.wall = false;
 
+  timings.A = {
+    sum: millis() - t,
+    count: 1
+  };
+  t = millis();
+
   // All the neighbors
   for (var i = 0; i < cols; i++) {
     for (var j = 0; j < rows; j++) {
       grid[i][j].addNeighbors(grid);
     }
   }
+
+  timings.B = {
+    sum: millis() - t,
+    count: 1
+  };
 
   // openSet starts with beginning only
   openSet.push(start);
@@ -89,6 +106,8 @@ function draw() {
 
   // Am I still searching?
   if (openSet.length > 0) {
+
+    t = millis();
 
     // Best next option
     var winner = 0;
@@ -104,6 +123,12 @@ function draw() {
       noLoop();
       console.log("DONE!");
       createP('Completed!');
+
+      for (var prop in timings) {
+        if(timings.hasOwnProperty(prop)) {
+          console.log(prop + " = " + (timings[prop].sum / timings[prop].count).toString());
+        }
+      }
     }
 
     // Best option moves from openSet to closedSet
@@ -139,18 +164,37 @@ function draw() {
           neighbor.previous = current;
         }
       }
-
     }
+
+    if (!timings.C) {
+      timings.C = {
+        sum: millis() - t,
+        count: 1
+      };
+    } else {
+      timings.C.sum = timings.C.sum + millis() - t;
+      timings.C.count = timings.C.count + 1;
+    }
+
   // Uh oh, no solution
   } else {
+    noLoop();
     console.log('no solution');
     createP('No solution.');
-    noLoop();
+
+    for (var prop in timings) {
+      if(timings.hasOwnProperty(prop)) {
+        console.log(prop + " = " + (timings[prop].sum / timings[prop].count).toString());
+      }
+    }
+
     return;
   }
 
   // Draw current state of everything
   background(255);
+
+  t = millis();
 
   for (var i = 0; i < cols; i++) {
     for (var j = 0; j < rows; j++) {
@@ -158,14 +202,46 @@ function draw() {
     }
   }
 
+  if (!timings.D) {
+    timings.D = {
+      sum: millis() - t,
+      count: 1
+    };
+  } else {
+    timings.D.sum = timings.D.sum + millis() - t;
+    timings.D.count = timings.D.count + 1;
+  }
+  t = millis();
+
   for (var i = 0; i < closedSet.length; i++) {
     closedSet[i].show(color(255, 0, 0, 50));
   }
+
+  if (!timings.E) {
+    timings.E = {
+      sum: millis() - t,
+      count: 1
+    };
+  } else {
+    timings.E.sum = timings.E.sum + millis() - t;
+    timings.E.count = timings.E.count + 1;
+  }
+  t = millis();
 
   for (var i = 0; i < openSet.length; i++) {
     openSet[i].show(color(0, 255, 0, 50));
   }
 
+  if (!timings.F) {
+    timings.F = {
+      sum: millis() - t,
+      count: 1
+    };
+  } else {
+    timings.F.sum = timings.F.sum + millis() - t;
+    timings.F.count = timings.F.count + 1;
+  }
+  t = millis();
 
   // Find the path by working backwards
   path = [];
@@ -176,6 +252,16 @@ function draw() {
     temp = temp.previous;
   }
 
+  if (!timings.G) {
+    timings.G = {
+      sum: millis() - t,
+      count: 1
+    };
+  } else {
+    timings.G.sum = timings.G.sum + millis() - t;
+    timings.G.count = timings.G.count + 1;
+  }
+  t = millis();
 
   // for (var i = 0; i < path.length; i++) {
     // path[i].show(color(0, 0, 255));
@@ -190,4 +276,14 @@ function draw() {
     vertex(path[i].i * w + w / 2, path[i].j * h + h / 2);
   }
   endShape();
+
+  if (!timings.H) {
+    timings.H = {
+      sum: millis() - t,
+      count: 1
+    };
+  } else {
+    timings.H.sum = timings.H.sum + millis() - t;
+    timings.H.count = timings.H.count + 1;
+  }
 }
