@@ -74,6 +74,8 @@ var path = [];
 function setup() {
   console.log('A*');
 
+  startTime();
+
   if (getURL().toLowerCase().indexOf("fullscreen") === -1) {
     createCanvas(400, 400);
   } else {
@@ -84,8 +86,6 @@ function setup() {
   // Grid cell size
   w = width / cols;
   h = height / rows;
-
-  startTime();
 
   // Making a 2D array
   for (var i = 0; i < cols; i++) {
@@ -104,19 +104,17 @@ function setup() {
   start.wall = false;
   end.wall = false;
 
-  recordTime("A");
-
   // openSet starts with beginning only
   openSet.push(start);
+
+  recordTime("Setup");
 }
 
 function draw() {
 
   // Am I still searching?
   if (openSet.length > 0) {
-
     startTime();
-
     // Best next option
     var winner = 0;
     for (var i = 0; i < openSet.length; i++) {
@@ -171,8 +169,7 @@ function draw() {
         }
       }
     }
-
-    recordTime("C");
+    recordTime("Algorithm");
 
   // Uh oh, no solution
   } else {
@@ -184,33 +181,22 @@ function draw() {
   }
 
   // Draw current state of everything
-  background(255);
-
   startTime();
-
+  background(255);
   for (var i = 0; i < cols; i++) {
     for (var j = 0; j < rows; j++) {
       grid[i][j].show();
     }
   }
-
-  recordTime("D");
-  startTime();
-
   for (var i = 0; i < closedSet.length; i++) {
     closedSet[i].show(color(255, 0, 0, 50));
   }
-
-  recordTime("E");
-  startTime();
-
   for (var i = 0; i < openSet.length; i++) {
     openSet[i].show(color(0, 255, 0, 50));
   }
+  recordTime("Draw Grid");
 
-  recordTime("F");
   startTime();
-
   // Find the path by working backwards
   path = [];
   var temp = current;
@@ -219,14 +205,9 @@ function draw() {
     path.push(temp.previous);
     temp = temp.previous;
   }
+  recordTime("Calc Path");
 
-  recordTime("G");
   startTime();
-
-  // for (var i = 0; i < path.length; i++) {
-    // path[i].show(color(0, 0, 255));
-  //}
-
   // Drawing path as continuous line
   noFill();
   stroke(255, 0, 200);
@@ -236,6 +217,5 @@ function draw() {
     vertex(path[i].i * w + w / 2, path[i].j * h + h / 2);
   }
   endShape();
-
-  recordTime("H");
+  recordTime("Draw Path");
 }

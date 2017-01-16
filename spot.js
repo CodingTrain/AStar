@@ -38,6 +38,7 @@ function Spot(i, j) {
       rect(this.i * w, this.j * h, w, h);
     } else if (col){
       fill(col);
+      noStroke();
       rect(this.i * w, this.j * h, w, h);
     }
   }
