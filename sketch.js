@@ -44,6 +44,33 @@ function heuristic(a, b) {
     return d;
 }
 
+function SettingBox(label, x, y, isSet, callback){
+  this.label = label;
+  this.x = x;
+  this.y = y;
+  this.isSet = isSet;
+  this.callback = callback;
+
+  this.show = function(){
+    //noFill();
+    ellipse(this.x+10,this.y+10,20,20);
+    //fill(0);
+    if( this.isSet ){
+      ellipse(this.x+10,this.y+10,3,3);
+    }
+    text(label, this.x + 25, this.y+15);
+  }
+
+  this.mouseClick = function(x, y) {
+      if (x > this.x && x <= this.x + 20 &&
+          y > this.y && y <= this.y + 20) {
+          this.isSet = !this.isSet;
+          if( this.callback != null)
+            this.callback(this);
+      }
+  }
+}
+
 function Button(label, x, y, w, h, callback) {
     this.label = label;
     this.x = x;
@@ -60,10 +87,10 @@ function Button(label, x, y, w, h, callback) {
     }
 
     this.mouseClick = function(x, y) {
-        if (callback != null &&
+        if (this.callback != null &&
             x > this.x && x <= this.x + this.w &&
             y > this.y && y <= this.y + this.h) {
-            callback(this);
+            this.callback(this);
         }
     }
 }
@@ -87,22 +114,26 @@ function restart(button) {
     pauseUnpause(true);
 }
 
+function toggleDiagonals(){
+  allowDiagonals = !allowDiagonals;
+}
+
 function mouseClicked() {
-    for (var i = 0; i < buttons.length; i++) {
-        buttons[i].mouseClick(mouseX, mouseY);
+    for (var i = 0; i < uiElements.length; i++) {
+        uiElements[i].mouseClick(mouseX, mouseY);
     }
 
 }
 
 function doGUI() {
-    for (var i = 0; i < buttons.length; i++) {
-        buttons[i].show();
+    for (var i = 0; i < uiElements.length; i++) {
+        uiElements[i].show();
     }
 }
 
 
 var gamemap;
-var buttons = [];
+var uiElements = [];
 var paused = true;
 var pathfinder;
 var status = "";
@@ -110,25 +141,26 @@ var stepsAllowed = 0;
 var runPauseButton;
 
 function initaliseSearchExample(rows, cols) {
-    gamemap = new SearchMap(cols, rows, 10, 10, 410, 410);
+    gamemap = new SearchMap(cols, rows, 10, 10, 410, 410, allowDiagonals);
     start = gamemap.grid[0][0];
     end = gamemap.grid[cols - 1][rows - 1];
     start.wall = false;
     end.wall = false;
 
-    pathfinder = new AStarPathFinder(gamemap, start, end);
+    pathfinder = new AStarPathFinder(gamemap, start, end, allowDiagonals);
 }
 
 function setup() {
-    createCanvas(500, 500);
+    createCanvas(600, 600);
     console.log('A*');
 
     initaliseSearchExample(cols, rows);
 
     runPauseButton = new Button("run", 430, 20, 50, 30, runpause);
-    buttons.push(runPauseButton);
-    buttons.push(new Button("step", 430, 70, 50, 30, step));
-    buttons.push(new Button("restart", 430, 120, 50, 30, restart));
+    uiElements.push(runPauseButton);
+    uiElements.push(new Button("step", 430, 70, 50, 30, step));
+    uiElements.push(new Button("restart", 430, 120, 50, 30, restart));
+    uiElements.push(new SettingBox("AllowDiag", 430, 180, allowDiagonals, toggleDiagonals));
 
 }
 
@@ -169,10 +201,25 @@ function draw() {
         pathfinder.closedSet[i].show(color(255, 0, 0, 50));
     }
 
+    var infoNode = null;
+
     for (var i = 0; i < pathfinder.openSet.length; i++) {
-        pathfinder.openSet[i].show(color(0, 255, 0, 50));
+        var node = pathfinder.openSet[i];
+        node.show(color(0, 255, 0, 50));
+        if( mouseX > node.x && mouseX < node.x+node.width &&
+          mouseY > node.y && mouseY < node.y + node.height ){
+            infoNode = node;
+          }
     }
 
+    fill(0);
+    if( infoNode != null ){
+      text("f = " + infoNode.f, 430, 230);
+      text("g = " + infoNode.g, 430, 250);
+      text("h = " + infoNode.f, 430, 270);
+      text("vh = " + infoNode.vh, 430, 290);
+
+    }
 
     // Find the path by working backwards
     path = [];

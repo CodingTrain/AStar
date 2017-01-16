@@ -1,12 +1,13 @@
-function AStarPathFinder(map, start, end) {
+function AStarPathFinder(map, start, end, allowDiagonals) {
     this.map = map;
     this.lastCheckedNode = start;
     this.openSet = [];
-    // openSet starts with eginning only
+    // openSet starts with beginning node only
     this.openSet.push(start);
     this.closedSet = [];
     this.start = start;
     this.end = end;
+    this.allowDiagonals = allowDiagonals;
 
     //Run one finding step.
     //returns 0 if search ongoing
@@ -35,7 +36,7 @@ function AStarPathFinder(map, start, end) {
                     //but improves the look for things like games or more closely
                     //approximates the real shortest path if using grid sampled data for
                     //planning natural paths.
-                    if (!allowDiagonals) {
+                    if (!this.allowDiagonals) {
                         if (this.openSet[i].g == this.openSet[winner].g &&
                             this.openSet[i].vh < this.openSet[winner].vh) {
                             winner = i;
@@ -81,7 +82,7 @@ function AStarPathFinder(map, start, end) {
                     // Yes, it's a better path
                     if (newPath) {
                         neighbor.h = heuristic(neighbor, this.end);
-                        if (allowDiagonals) {
+                        if (!this.allowDiagonals) {
                             neighbor.vh = visualDist(neighbor, this.end);
                         }
                         neighbor.f = neighbor.g + neighbor.h;

@@ -1,4 +1,4 @@
-function SearchMap(cols, rows, x, y, w, h) {
+function SearchMap(cols, rows, x, y, w, h, allowDiagonals) {
     // How many columns and rows?
     this.cols = cols;
     this.rows = rows;
@@ -11,7 +11,7 @@ function SearchMap(cols, rows, x, y, w, h) {
     this.y = y;
     this.w = w;
     this.h = h;
-    // Start and end
+
     // Making a 2D array
     for (var i = 0; i < cols; i++) {
         this.grid[i] = [];
