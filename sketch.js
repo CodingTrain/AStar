@@ -111,18 +111,11 @@ function setup() {
 }
 
 function draw() {
-
   // Am I still searching?
   if (openSet.length > 0) {
     startTime();
-    // Best next option
-    var winner = 0;
-    for (var i = 0; i < openSet.length; i++) {
-      if (openSet[i].f < openSet[winner].f) {
-        winner = i;
-      }
-    }
-    var current = openSet[winner];
+
+    var current = findNextSpot();
 
     // Did I finish?
     if (current === end) {
@@ -137,42 +130,11 @@ function draw() {
     closedSet.push(current);
 
     // Check all the neighbors
-    if (!current.neighbors) {
-      current.addNeighbors(grid)
-    }
-    var neighbors = current.neighbors;
-    for (var i = 0; i < neighbors.length; i++) {
-      var neighbor = neighbors[i];
+    addNeighborsToOpenSet(current);
 
-      // Valid next spot?
-      if (!closedSet.includes(neighbor)) {
-        var tempG = current.g + heuristic(neighbor, current);
-
-        // Is this a better path than before?
-        var newPath = false;
-        if (openSet.includes(neighbor)) {
-          if (tempG < neighbor.g) {
-            neighbor.g = tempG;
-            newPath = true;
-          }
-        } else {
-          neighbor.g = tempG;
-          newPath = true;
-          openSet.push(neighbor);
-        }
-
-        // Yes, it's a better path
-        if (newPath) {
-          neighbor.h = heuristic(neighbor, end);
-          neighbor.f = neighbor.g + neighbor.h;
-          neighbor.previous = current;
-        }
-      }
-    }
     recordTime("Algorithm");
-
-  // Uh oh, no solution
   } else {
+    // Uh oh, no solution
     noLoop();
     console.log('no solution');
     createP('No solution.');
@@ -180,8 +142,57 @@ function draw() {
     return;
   }
 
-  // Draw current state of everything
+  drawGrid();
+
+  path = calcPath(current);
+  drawPath(path);
+}
+
+
+// Find next spot
+function findNextSpot() {
+  // Best next option
+  var winner = 0;
+  for (var i = 0; i < openSet.length; i++) {
+    if (openSet[i].f < openSet[winner].f) {
+      winner = i;
+    }
+  }
+  return openSet[winner];
+}
+
+// Find any viable neighbors to search through
+function addNeighborsToOpenSet(current) {
+  var neighbors = current.getNeighbors(grid);
+
+  for (var i = 0; i < neighbors.length; i++) {
+    var neighbor = neighbors[i];
+
+    // Valid next spot?
+    if (!closedSet.includes(neighbor)) {
+      var tempG = current.g + heuristic(neighbor, current);
+
+      // Is this a better path than before?
+      if (!openSet.includes(neighbor)) {
+        openSet.push(neighbor);
+      } else if (tempG >= neighbor.g) {
+        // No, it's not a better path
+        continue;
+      }
+
+      neighbor.g = tempG;
+      neighbor.h = heuristic(neighbor, end);
+      neighbor.f = neighbor.g + neighbor.h;
+      neighbor.previous = current;
+    }
+  }
+}
+
+
+// Draw current state of everything
+function drawGrid() {
   startTime();
+
   background(255);
   for (var i = 0; i < cols; i++) {
     for (var j = 0; j < rows; j++) {
@@ -194,10 +205,14 @@ function draw() {
   for (var i = 0; i < openSet.length; i++) {
     openSet[i].show(color(0, 255, 0, 50));
   }
-  recordTime("Draw Grid");
 
+  recordTime("Draw Grid");
+}
+
+// Find the path by working backwards
+function calcPath(current) {
   startTime();
-  // Find the path by working backwards
+
   path = [];
   var temp = current;
   path.push(temp);
@@ -205,17 +220,25 @@ function draw() {
     path.push(temp.previous);
     temp = temp.previous;
   }
+
   recordTime("Calc Path");
 
+  return path;
+}
+
+// Drawing path as continuous line
+function drawPath(path) {
   startTime();
-  // Drawing path as continuous line
+
   noFill();
   stroke(255, 0, 200);
   strokeWeight(w / 2);
+
   beginShape();
   for (var i = 0; i < path.length; i++) {
     vertex(path[i].i * w + w / 2, path[i].j * h + h / 2);
   }
   endShape();
+
   recordTime("Draw Path");
 }

@@ -5,6 +5,8 @@
 // Part 2: https://youtu.be/EaZxUCWAjb0
 // Part 3: https://youtu.be/jwRT4PCT6RU
 
+var percentWalls = 0.3;
+
 // An object to describe a spot in the grid
 function Spot(i, j) {
 
@@ -25,7 +27,7 @@ function Spot(i, j) {
 
   // Am I an wall?
   this.wall = false;
-  if (random(1) < 0.3) {
+  if (random(1) < percentWalls) {
     this.wall = true;
   }
 
@@ -41,6 +43,13 @@ function Spot(i, j) {
       noStroke();
       rect(this.i * w, this.j * h, w, h);
     }
+  }
+
+  this.getNeighbors = function(grid) {
+    if (!this.neighbors) {
+      this.addNeighbors(grid);
+    }
+    return this.neighbors;
   }
 
   // Figure out who my neighbors are
