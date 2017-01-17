@@ -95,7 +95,7 @@ function Spot(i, j, grid) {
     
     for(var i = -1; i <= 1; i++){
       for(var j = -1; j <= 1; j++){
-        if((!allowDiagonals && i != 0 && j != 0) || n[0] == i && n[1] == j)
+        if((!allowDiagonals && i != 0 && j != 0) || nodeI == i && nodeJ == j)
           continue;          
         
         var n = this.grid[nodeI + i][nodeJ + j];
@@ -126,7 +126,7 @@ function Spot(i, j, grid) {
     
     for(var i = -1; i <= 1; i++){
       for(var j = -1; j <= 1; j++){
-        if(n[0] == i && n[1] == j)
+        if(nodeI == i && nodeJ == j)
           continue;          
         
         var n = this.grid[nodeI + i][nodeJ + j];
