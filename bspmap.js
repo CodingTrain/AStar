@@ -29,14 +29,14 @@ function BspMap(cols, rows, x, y, w, h, allowDiagonals){
             }
         }
 
-        var mainContainer = new Container(1, 1, this.cols-2, this.rows-2);
+        var mainContainer = new BspContainer(1, 1, this.cols-2, this.rows-2);
         this.mainTree = this.splitContainer(mainContainer, this.N_ITERATIONS);
 
         // Write the rooms into the grid
         var leafs = this.mainTree.getLeafs();
         for(var i= 0; i < leafs.length; i++)
         {
-            var room = new Room(leafs[i]);
+            var room = new BspRoom(leafs[i]);
             room.removeWallsFromGrid(this.grid);
         }
         // Write the halls into the grid
@@ -102,7 +102,7 @@ function BspMap(cols, rows, x, y, w, h, allowDiagonals){
 
     this.splitContainer = function(container, iteration)
     {
-        var root = new Tree(container);
+        var root = new BspTree(container);
         if(iteration > 0)
         {
             var sr = this.random_split(container);
@@ -115,11 +115,11 @@ function BspMap(cols, rows, x, y, w, h, allowDiagonals){
         var region1, region2;
         if (this.random(0, 1) == 0) {
             // Vertical
-            region1 = new Container(
+            region1 = new BspContainer(
                 container.x, container.y,             // region1.x, region1.y
                 this.random(1, container.w), container.h   // region1.w, region1.h
             );
-            region2 = new Container(
+            region2 = new BspContainer(
                 container.x + region1.w, container.y,      // region2.x, region2.y
                 container.w - region1.w, container.h       // region2.w, region2.h
             );
@@ -133,11 +133,11 @@ function BspMap(cols, rows, x, y, w, h, allowDiagonals){
             }
         } else {
             // Horizontal
-            region1 = new Container(
+            region1 = new BspContainer(
                 container.x, container.y,             // region1.x, region1.y
                 container.w, this.random(1, container.h)   // region1.w, region1.h
             );
-            region2 = new Container(
+            region2 = new BspContainer(
                 container.x, container.y + region1.h,      // region2.x, region2.y
                 container.w, container.h - region1.h       // region2.w, region2.h
             );
@@ -164,22 +164,11 @@ function BspMap(cols, rows, x, y, w, h, allowDiagonals){
     this.build();
 }
 
-function Tree(leaf)
+function BspTree(leaf)
 {
     this.leaf = leaf;
     this.lchild = undefined;
     this.rchild = undefined;
-
-    this.draw = function()
-    {
-        var leafs = this.getLeafs();
-
-        for(var i = 0; i<leafs.length; i++)
-        {
-            leafs[i].draw();
-            new Room(leafs[i]).draw();
-        }
-    }
 
     this.getLeafs = function()
     {
@@ -190,24 +179,16 @@ function Tree(leaf)
     }
 }
 
-function Container(x, y, w, h)
+function BspContainer(x, y, w, h)
 {
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
     this.center = {x:this.x+this.w/2, y:this.y+this.h/2};
-
-    this.draw = function()
-    {
-        stroke(0,0,255);
-        strokeWeight(1);
-        noFill();
-        rect(this.x, this.y, this.w, this.h);
-    }
 }
 
-function Room(container)
+function BspRoom(container)
 {
     this.x = container.x + floor(random(0, Math.floor(container.w/3)));
     this.y = container.y + floor(random(0, Math.floor(container.h/3)));
@@ -224,12 +205,66 @@ function Room(container)
                 grid[x][y].wall = false;
             }
         }
+        this.decorate(grid);
     }
 
-    this.draw = function()
+    this.decorate = function(grid)
     {
-        fill(0,255,0);
-        noStroke();
-        rect(this.x, this.y, this.w, this.h);
+        switch (floor(random(0,10))) {
+            case 0:
+            case 1:
+                this.decorate_columns(grid);
+                break;
+            case 2:
+            case 3:
+                this.decorate_circle(grid);
+                break;
+            default:
+                return;
+        }
+    }
+    this.decorate_columns = function(grid)
+    {
+        var spacing = floor(random(3,5));
+        var cols = this.w / spacing;
+        var rows = this.h / spacing;
+        for(var x = this.x + 1; x < this.x + this.w - 1; x+=spacing){
+            for(var y = this.y + 1; y < this.y + this.h - 1; y+=spacing){
+                grid[x][y].wall = true;
+            }
+        }
+    }
+    this.decorate_circle = function(grid)
+    {
+        var radius = floor(random(2,min(this.w/2, this.h/2, 6)));
+        var x0 = floor(this.x + this.w/2) + floor(random(-1, 2));
+        var y0 = floor(this.y + this.h/2) + floor(random(-1, 2));;
+
+        var x = radius;
+        var y = 0;
+        var err = 0;
+
+       while (x >= y)
+       {
+           grid[x0 + x][y0 + y].wall = true;
+           grid[x0 + y][y0 + x].wall = true;
+           grid[x0 - y][y0 + x].wall = true;
+           grid[x0 - x][y0 + y].wall = true;
+           grid[x0 - x][y0 - y].wall = true;
+           grid[x0 - y][y0 - x].wall = true;
+           grid[x0 + y][y0 - x].wall = true;
+           grid[x0 + x][y0 - y].wall = true;
+
+           if (err <= 0)
+           {
+               y += 1;
+               err += 2*y + 1;
+           }
+           if (err > 0)
+           {
+               x -= 1;
+               err -= 2*x + 1;
+           }
+       }
     }
 }
