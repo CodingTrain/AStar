@@ -9,6 +9,29 @@ function AStarPathFinder(map, start, end, allowDiagonals) {
     this.end = end;
     this.allowDiagonals = allowDiagonals;
 
+    //This function returns a measure of aesthetic preference for
+    //use when ordering the openSet. It is used to prioritise
+    //between equal standard heuristic scores. It can therefore
+    //be anything you like without affecting the ability to find
+    //a minimum cost path.
+
+    this.visualDist = function(a, b) {
+        return dist(a.i, a.j, b.i, b.j);
+    }
+
+    // An educated guess of how far it is between two points
+
+    this.heuristic = function(a, b) {
+        var d;
+        if (allowDiagonals) {
+            d = dist(a.i, a.j, b.i, b.j);
+        } else {
+            d = abs(a.i - b.i) + abs(a.j - b.j);
+        }
+        return d;
+    }
+
+
     //Run one finding step.
     //returns 0 if search ongoing
     //returns 1 if goal reached
@@ -64,7 +87,7 @@ function AStarPathFinder(map, start, end, allowDiagonals) {
 
                 // Valid next spot?
                 if (!this.closedSet.includes(neighbor) && !neighbor.wall) {
-                    var tempG = current.g + heuristic(neighbor, current);
+                    var tempG = current.g + this.heuristic(neighbor, current);
 
                     // Is this a better path than before?
                     var newPath = false;
@@ -81,9 +104,9 @@ function AStarPathFinder(map, start, end, allowDiagonals) {
 
                     // Yes, it's a better path
                     if (newPath) {
-                        neighbor.h = heuristic(neighbor, this.end);
+                        neighbor.h = this.heuristic(neighbor, this.end);
                         if (!this.allowDiagonals) {
-                            neighbor.vh = visualDist(neighbor, this.end);
+                            neighbor.vh = this.visualDist(neighbor, this.end);
                         }
                         neighbor.f = neighbor.g + neighbor.h;
                         neighbor.previous = current;

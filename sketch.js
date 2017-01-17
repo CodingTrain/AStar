@@ -22,27 +22,6 @@ function removeFromArray(arr, elt) {
     }
 }
 
-//This function returns a measure of aesthetic preference for
-//use when ordering the openSet. It is used to prioritise
-//between equal standard heuristic scores. It can therefore
-//be anything you like without affecting the ability to find
-//a minimum cost path.
-
-function visualDist(a, b) {
-    return dist(a.i, a.j, b.i, b.j);
-}
-
-// An educated guess of how far it is between two points
-
-function heuristic(a, b) {
-    var d;
-    if (allowDiagonals) {
-        d = dist(a.i, a.j, b.i, b.j);
-    } else {
-        d = abs(a.i - b.i) + abs(a.j - b.j);
-    }
-    return d;
-}
 
 function SettingBox(label, x, y, isSet, callback){
   this.label = label;
@@ -216,7 +195,7 @@ function draw() {
     if( infoNode != null ){
       text("f = " + infoNode.f, 430, 230);
       text("g = " + infoNode.g, 430, 250);
-      text("h = " + infoNode.f, 430, 270);
+      text("h = " + infoNode.h, 430, 270);
       text("vh = " + infoNode.vh, 430, 290);
 
     }
