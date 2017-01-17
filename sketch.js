@@ -9,7 +9,7 @@
 // option 0 = corn maze
 // option 1 = castle
 // (Both look cool)
-var drawingOption = 1;
+var drawingOption = 0;
 
 //Set to true to allow diagonal moves
 //This will also switch from Manhattan to Euclidean distance measures
