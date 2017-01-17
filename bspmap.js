@@ -29,7 +29,7 @@ function BspMap(cols, rows, x, y, w, h, allowDiagonals){
             }
         }
 
-        var mainContainer = new Container(0, 0, this.cols, this.rows);
+        var mainContainer = new Container(1, 1, this.cols-2, this.rows-2);
         this.mainTree = this.splitContainer(mainContainer, this.N_ITERATIONS);
 
         // Write the rooms into the grid
