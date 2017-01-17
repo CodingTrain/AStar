@@ -120,7 +120,7 @@ var stepsAllowed = 0;
 var runPauseButton;
 
 function initaliseSearchExample(rows, cols) {
-    gamemap = new SearchMap(cols, rows, 10, 10, 410, 410, allowDiagonals);
+    gamemap = new BspMap(cols, rows, 10, 10, 410, 410, allowDiagonals);
     start = gamemap.grid[0][0];
     end = gamemap.grid[cols - 1][rows - 1];
     start.wall = false;
