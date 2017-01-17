@@ -6,7 +6,7 @@
 // Part 3: https://youtu.be/jwRT4PCT6RU
 
 // An object to describe a spot in the grid
-function Spot(i, j, x, y ,width, height, isWall) {
+function Spot(i, j, x, y, width, height, isWall) {
     this.i = i;
     this.j = j;
     this.x = x;
@@ -23,13 +23,28 @@ function Spot(i, j, x, y ,width, height, isWall) {
     this.wall = isWall;
 
     this.show = function(color) {
-        noStroke();
-        fill(color);
         if (this.wall) {
+            noStroke();
             fill(0);
             ellipse(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, this.height / 2);
-        } else {
-            rect(this.x, this.y, this.width - 1, this.height - 1);
+
+            stroke(0);
+            strokeWeight(this.width / 2);
+
+            // Draw line between this and bottom/right neighbor walls
+            for (var i = 0; i < this.neighbors.length; i++) {
+                var neighbor = this.neighbors[i];
+                if (neighbor.wall &&
+                    ((neighbor.i > this.i && neighbor.j == this.j) ||
+                        (neighbor.i == this.i && neighbor.j > this.j))) {
+                    line(this.x + this.width / 2, this.y + this.height / 2,
+                        neighbor.x + neighbor.width / 2, neighbor.y + neighbor.height / 2);
+                }
+            }
+        } else if (color) {
+            fill(color);
+            strokeWeight(0);
+            rect(this.x, this.y, this.width, this.height);
         }
     }
 
