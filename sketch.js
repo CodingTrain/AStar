@@ -5,6 +5,23 @@
 // Part 2: https://youtu.be/EaZxUCWAjb0
 // Part 3: https://youtu.be/jwRT4PCT6RU
 
+// 2 options for drawing the walls
+// option 0 = corn maze
+// option 1 = castle
+// (Both look cool)
+var drawingOption = 1;
+
+//Set to true to allow diagonal moves
+//This will also switch from Manhattan to Euclidean distance measures
+var allowDiagonals = true;
+
+// can the path go between the corners of two
+// walls located diagonally next to each other
+var canPassThroughCorners = false;
+
+// % of cells that are walls
+var percentWalls = (allowDiagonals ? (canPassThroughCorners ? 0.4 : 0.3) : 0.2);
+
 // Function to delete element from the array
 function removeFromArray(arr, elt) {
   // Could use indexOf here instead to be more efficient
@@ -15,10 +32,25 @@ function removeFromArray(arr, elt) {
   }
 }
 
+//This function returns a measure of aesthetic preference for
+//use when ordering the openSet. It is used to prioritise
+//between equal standard heuristic scores. It can therefore
+//be anything you like without affecting the ability to find
+//a minimum cost path.
+
+function visualDist(a, b) {
+  return dist(a.i, a.j, b.i, b.j);
+}
+
 // An educated guess of how far it is between two points
+
 function heuristic(a, b) {
-  var d = dist(a.i, a.j, b.i, b.j);
-  // var d = abs(a.i - b.i) + abs(a.j - b.j);
+  var d;
+  if (allowDiagonals) {
+    d = dist(a.i, a.j, b.i, b.j);
+  } else {
+    d = abs(a.i - b.i) + abs(a.j - b.j);
+  }
   return d;
 }
 
@@ -39,29 +71,6 @@ var end;
 
 // Width and height of each cell of grid
 var w, h;
-
-// % of cells that are walls
-var percentWalls = 0.3;
-
-// can the path go between the corners of two
-// walls located diagonally next to each other
-var canPassThroughCorners = false;
-
-// function for drawing a wall
-function drawWall(shape) {
-  fill(0);
-  noStroke();
-
-  // var x = shape.i * w + w / 2;
-  // var y = shape.j * h + h / 2;
-  // ellipse(x, y, w, h);
-
-  var x = shape.i * w;
-  var y = shape.j * h;
-  rect(x, y, w, h);
-}
-
-
 
 // Timer
 var t;
@@ -117,7 +126,7 @@ function setup() {
 
   for (var i = 0; i < cols; i++) {
     for (var j = 0; j < rows; j++) {
-      grid[i][j] = new Spot(i, j);
+      grid[i][j] = new Spot(i, j, grid);
     }
   }
 
@@ -176,9 +185,28 @@ function draw() {
 function findNextSpot() {
   // Best next option
   var winner = 0;
-  for (var i = 0; i < openSet.length; i++) {
+  for (var i = 1; i < openSet.length; i++) {
     if (openSet[i].f < openSet[winner].f) {
       winner = i;
+    }
+    //if we have a tie according to the standard heuristic
+    if (openSet[i].f == openSet[winner].f) {
+      //Prefer to explore options with longer known paths (closer to goal)
+      if (openSet[i].g > openSet[winner].g) {
+        winner = i;
+      }
+      //if we're using Manhattan distances then also break ties
+      //of the known distance measure by using the visual heuristic.
+      //This ensures that the search concentrates on routes that look
+      //more direct. This makes no difference to the actual path distance
+      //but improves the look for things like games or more closely
+      //approximates the real shortest path if using grid sampled data for
+      //planning natural paths.
+      if (!allowDiagonals) {
+        if (openSet[i].g == openSet[winner].g && openSet[i].vh < openSet[winner].vh) {
+          winner = i;
+        }
+      }
     }
   }
   return openSet[winner];
@@ -186,7 +214,7 @@ function findNextSpot() {
 
 // Find any viable neighbors to search through
 function addNeighborsToOpenSet(current) {
-  var neighbors = current.getNeighbors(grid);
+  var neighbors = current.getNeighbors();
 
   for (var i = 0; i < neighbors.length; i++) {
     var neighbor = neighbors[i];
@@ -205,6 +233,9 @@ function addNeighborsToOpenSet(current) {
 
       neighbor.g = tempG;
       neighbor.h = heuristic(neighbor, end);
+      if (allowDiagonals) {
+        neighbor.vh = visualDist(neighbor, end);
+      }
       neighbor.f = neighbor.g + neighbor.h;
       neighbor.previous = current;
     }
