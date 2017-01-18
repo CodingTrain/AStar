@@ -11,6 +11,11 @@
 // (Both look cool)
 var drawingOption = 0;
 
+// 2 options for obstacles
+// option 0 = randomly placed obstacles
+// option 1 = maze
+var obstaclesOption = 0;
+
 //Set to true to allow diagonal moves
 //This will also switch from Manhattan to Euclidean distance measures
 var allowDiagonals = true;
@@ -128,6 +133,84 @@ function setup() {
     for (var j = 0; j < rows; j++) {
       grid[i][j] = new Spot(i, j, grid);
     }
+  }
+
+  // Maze generation Algorithm
+  if (obstaclesOption == 1) {
+    // collumn and row
+    var c = 0;
+    var r = 0;
+    var history = [[0, 0]];
+
+    // As long as there is at least one location in history
+    while (history.length) {
+      var left = grid[c][r - 2];
+      var right = grid[c][r + 2];
+      var up = grid[c - 2] && grid[c - 2][r];
+      var down = grid[c + 2] && grid[c + 2][r];
+      var current = grid[c][r];
+      current.visited = true;
+      current.wall = false;
+
+      var check = [] // The neighbors that need to be checked
+      if (left && !left.visited) {
+        check.push(left);
+      }
+
+      if (up && !up.visited) {
+        check.push(up);
+      }
+
+      if (right && !right.visited) {
+        check.push(right);
+      }
+
+      if (down && !down.visited) {
+        check.push(down);
+      }
+
+      // If there is a valid neighbor location
+      if (check.length) {
+        history.push([c, r]);
+        // We choose a random location to make a path
+        var direction = check[Math.floor(Math.random() * check.length)];
+        if (direction == left) {
+          left.wall = false;
+          grid[c][r - 1].wall = false;
+          r -= 2;
+        }
+
+        else if (direction == up) {
+          up.wall = false;
+          grid[c - 1][r].wall = false;
+          c -= 2;
+        }
+
+        else if (direction == right) {
+          right.wall = false;
+          grid[c][r + 1].wall = false;
+          r += 2;
+        }
+
+        else if (direction == down) {
+          down.wall = false;
+          grid[c + 1][r].wall = false;
+          c += 2;
+        }
+      }
+      else {
+        // We backtrack to the last place in history
+        // if there is no valid neighbor
+        var next = history.pop();
+        c = next[0];
+        r = next[1];
+      }
+    }
+
+    // Makes sure there's a possible exit to the maze
+    // Change me if you change the end location!
+    grid[cols - 1][rows - 2].wall = false;
+    grid[cols - 2][rows - 1].wall = false;
   }
 
   // Start and end

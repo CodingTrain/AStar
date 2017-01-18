@@ -28,7 +28,15 @@ function Spot(i, j, grid) {
 
   // Am I an wall?
   this.wall = false;
-  if (random(1) < percentWalls) {
+
+  // Did the maze algorithm already visit me?
+  this.visited = false;
+
+  if (obstaclesOption == 0  && random(1) < percentWalls) {
+    this.wall = true;
+  }
+  else if (obstaclesOption == 1) {
+    // All the spots start as walls when generating a maze
     this.wall = true;
   }
 
