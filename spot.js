@@ -6,134 +6,124 @@
 // Part 3: https://youtu.be/jwRT4PCT6RU
 
 // An object to describe a spot in the grid
-function Spot(i, j, grid) {
-  this.grid = grid;
+function Spot(i, j, x, y, width, height, isWall, grid) {
 
-  // Location
-  this.i = i;
-  this.j = j;
+    this.grid = grid;
 
-  // f, g, and h values for A*
-  this.f = 0;
-  this.g = 0;
-  this.h = 0;
-  this.vh = 0; //visual heuristic for prioritising path options
+    // Location
+    this.i = i;
+    this.j = j;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
 
-  // Neighbors
-  this.neighbors = undefined;
-  this.neighboringWalls = undefined;
+    // f, g, and h values for A*
+    this.f = 0;
+    this.g = 0;
+    this.h = 0;
+    this.vh = 0; //visual heuristic for prioritising path options
+    // Neighbors
+    this.neighbors = undefined;
+    this.neighboringWalls = undefined;
+    // Where did I come from?
+    this.previous = undefined;
+    // Am I an wall?
+    this.wall = isWall;
 
-  // Where did I come from?
-  this.previous = undefined;
+    // Display me
+    this.show = function(color) {
+        if (this.wall) {
+            fill(0);
+            noStroke();
 
-  // Am I an wall?
-  this.wall = false;
-  if (random(1) < percentWalls) {
-    this.wall = true;
-  }
+            if (drawingOption === 0) {
+                ellipse(this.x + this.width * 0.5, this.y + this.width * 0.5, this.width * 0.5, this.height * 0.5);
+            } else {
+                rect(this.x, this.y, this.width, this.height);
+            }
 
-  // Display me
-  this.show = function(col) {
-    if (this.wall) {
-      fill(0);
-      noStroke();
+            stroke(0);
+            strokeWeight(this.width / 2);
 
-      if (drawingOption === 0) {
-        var x = this.i * w + w / 2;
-        var y = this.j * h + h / 2;
-        ellipse(x, y, w / 2, h / 2);
-      } else {
-        var x = this.i * w;
-        var y = this.j * h;
-        rect(x, y, w, h);
-      }
+            var nWalls = this.getNeighboringWalls(this.grid);
+            for (var i = 0; i < nWalls.length; i++) {
+                var nw = nWalls[i];
 
-      stroke(0);
-      strokeWeight(w / 2);
+                // Draw line between this and bottom/right neighbor walls
+                if ((nw.i > this.i && nw.j == this.j) ||
+                    (nw.i == this.i && nw.j > this.j)) {
+                    line(this.x + this.width / 2,
+                        this.y + this.height / 2,
+                        nw.x + nw.width / 2,
+                        nw.y + nw.height / 2);
+                }
 
-      var nWalls = this.getNeighboringWalls();
-      for (var i = 0; i < nWalls.length; i++) {
-        var nw = nWalls[i];
-
-        // Draw line between this and bottom/right neighbor walls
-        if ((nw.i > this.i && nw.j == this.j)
-            || (nw.i == this.i && nw.j > this.j)) {
-          line(this.i * w + w / 2,
-               this.j * h + h / 2,
-               nw.i * w + w / 2,
-               nw.j * h + h / 2);
+                // Draw line between this and bottom-left/bottom-right neighbor walls
+                if (!canPassThroughCorners && (nw.j > this.j) &&
+                    (nw.i < this.i || nw.i > this.i)) {
+                    line(this.x + this.width / 2,
+                        this.y + this.height / 2,
+                        nw.x + nw.width / 2,
+                        nw.y + nw.height / 2);
+                }
+            }
+        } else if (color) {
+            fill(color);
+            noStroke();
+            rect(this.x, this.y, this.width, this.height);
         }
+    }
 
-        // Draw line between this and bottom-left/bottom-right neighbor walls
-        if (!canPassThroughCorners && (nw.j > this.j)
-            && (nw.i < this.i || nw.i > this.i)) {
-          line(this.i * w + w / 2,
-               this.j * h + h / 2,
-               nw.i * w + w / 2,
-               nw.j * h + h / 2);
-        }
+    this.getNeighbors = function() {
+      if (!this.neighbors) {
+        this.addNeighbors();
       }
-    } else if (col) {
-      fill(col);
-      noStroke();
-      rect(this.i * w, this.j * h, w, h);
+      return this.neighbors;
     }
-  }
 
-  this.getNeighbors = function() {
-    if (!this.neighbors) {
-      this.addNeighbors();
-    }
-    return this.neighbors;
-  }
+    // Figure out who my neighbors are
+    this.addNeighbors = function() {
+      this.neighbors = [];
+      var nodeI = this.i;
+      var nodeJ = this.j;
 
-  // Figure out who my neighbors are
-  this.addNeighbors = function() {
-    this.neighbors = [];
-    var nodeI = this.i;
-    var nodeJ = this.j;
-    
-    for(var i = -1; i <= 1; i++){
-      for(var j = -1; j <= 1; j++){
-        if((!allowDiagonals && i != 0 && j != 0) || nodeI == i && nodeJ == j)
-          continue;          
-        
-        var n = this.grid[nodeI + i][nodeJ + j];
-        if(!n.wall){
-          if (canPassThroughCorners) {
-            this.neighbors.push(n);
-          } else {
-            var top = this.grid[nodeI][nodeJ + j];
-            var left = this.grid[nodeI + i][nodeJ];
-            if (!(top.wall && left.wall)) {
+      for(var i = -1; i <= 1; i++){
+        for(var j = -1; j <= 1; j++){
+          if((!allowDiagonals && i != 0 && j != 0) || nodeI == i && nodeJ == j)
+            continue;          
+
+          var n = this.grid[nodeI + i][nodeJ + j];
+          if(!n.wall){
+            if (canPassThroughCorners) {
               this.neighbors.push(n);
+            } else {
+              var top = this.grid[nodeI][nodeJ + j];
+              var left = this.grid[nodeI + i][nodeJ];
+              if (!(top.wall && left.wall)) {
+                this.neighbors.push(n);
+              }
             }
           }
         }
       }
     }
-  }
 
-  this.getNeighboringWalls = function(grid) {
-    if (this.neighboringWalls) {
-      return this.neighboringWalls;
-    }
+    this.getNeighboringWalls = function(grid) {
+      this.neighboringWalls = [];
 
-    this.neighboringWalls = [];
-    
-    var nodeI = this.i;
-    var nodeJ = this.j;
-    
-    for(var i = -1; i <= 1; i++){
-      for(var j = -1; j <= 1; j++){
-        if(nodeI == i && nodeJ == j)
-          continue;          
-        
-        var n = this.grid[nodeI + i][nodeJ + j];
-        if(n.wall)
-          this.neighboringWalls.push(n);
+      var nodeI = this.i;
+      var nodeJ = this.j;
+
+      for(var i = -1; i <= 1; i++){
+        for(var j = -1; j <= 1; j++){
+          if(nodeI == i && nodeJ == j)
+            continue;          
+
+          var n = this.grid[nodeI + i][nodeJ + j];
+          if(n.wall)
+            this.neighboringWalls.push(n);
+        }
       }
     }
-    return this.neighboringWalls;
-  }
 }
