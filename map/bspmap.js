@@ -1,4 +1,10 @@
-function BspMap(cols, rows, x, y, w, h, allowDiagonals){
+// This is a Binary Space Partitioning (BSP) map generator strategy,
+// tailored to make rogue-like square room dungeons.
+// https://en.wikipedia.org/wiki/Binary_space_partitioning
+// This could be improved by adding different types of rooms other than
+// rectangle spaces, plus the connecting hallways are naive at best.
+
+function BspMap(cols, rows, x, y, w, h, allowDiagonals, percentWalls){
     this.cols = cols;
     this.rows = rows;
     this.x = x;
@@ -19,13 +25,14 @@ function BspMap(cols, rows, x, y, w, h, allowDiagonals){
 
     this.N_ITERATIONS = 4;
 
+    // Initialize the grid
     this.build = function()
     {
         this.grid = [];
         for (var i = 0; i < this.cols; i++) {
             this.grid[i] = [];
             for (var j = 0; j < this.rows; j++) {
-                this.grid[i][j] = new Spot(i, j, x + i * w /this.cols, y + j * h / this.rows, w / this.cols, h / this.rows, true);
+                this.grid[i][j] = new Spot(i, j, x + i * w /this.cols, y + j * h / this.rows, w / this.cols, h / this.rows, true, this.grid);
             }
         }
 
@@ -51,6 +58,7 @@ function BspMap(cols, rows, x, y, w, h, allowDiagonals){
         }
     }
 
+    // Carve out the hallways which connect rooms
     this.carvePath = function(tree, grid)
     {
         if (tree.lchild == undefined || tree.rchild == undefined){
@@ -76,6 +84,8 @@ function BspMap(cols, rows, x, y, w, h, allowDiagonals){
         this.carvePath(tree.lchild, grid);
         this.carvePath(tree.rchild, grid);
     }
+
+    // Make sure the starting end ending points connect to the rest of the map.
     this.carveEntranceAndExit = function(grid, startPoint, endPoint)
     {
         // Entrance
@@ -95,11 +105,14 @@ function BspMap(cols, rows, x, y, w, h, allowDiagonals){
         }
     }
 
+    // Inclusive min/max random.
     this.random = function(min, max)
     {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 
+    // Recursively divide the region until iteration count is met, or the
+    // child regions are the right size.
     this.splitContainer = function(container, iteration)
     {
         var root = new BspTree(container);
@@ -111,6 +124,7 @@ function BspMap(cols, rows, x, y, w, h, allowDiagonals){
         }
         return root;
     }
+    // Divide a container region into two child regions
     this.random_split = function(container) {
         var region1, region2;
         if (this.random(0, 1) == 0) {
@@ -153,23 +167,17 @@ function BspMap(cols, rows, x, y, w, h, allowDiagonals){
         return [region1, region2];
     }
 
-    this.draw = function()
-    {
-        push();
-        scale(this.w/this.cols, this.h/this.rows);
-        this.mainTree.draw();
-        pop();
-    }
-
     this.build();
 }
 
+// The tree tracks the leaf node (container) and it's partitioned children
 function BspTree(leaf)
 {
     this.leaf = leaf;
     this.lchild = undefined;
     this.rchild = undefined;
 
+    // returns only leafs which don't have children, as a flat array.
     this.getLeafs = function()
     {
         if (this.lchild === undefined && this.rchild === undefined)
@@ -179,6 +187,7 @@ function BspTree(leaf)
     }
 }
 
+// The container is the partitioned region to put a room into
 function BspContainer(x, y, w, h)
 {
     this.x = x;
@@ -188,6 +197,7 @@ function BspContainer(x, y, w, h)
     this.center = {x:this.x+this.w/2, y:this.y+this.h/2};
 }
 
+// Used to create the actual room within the container space.
 function BspRoom(container)
 {
     this.x = container.x + floor(random(0, Math.floor(container.w/3)));
@@ -197,6 +207,7 @@ function BspRoom(container)
     this.w -= floor(random(0, this.w/3));
     this.h -= floor(random(0, this.w/3));
 
+    // We mark the empty spaces for the room
     this.removeWallsFromGrid = function(grid)
     {
         for(var x=this.x; x < this.x + this.w; x++){
@@ -207,7 +218,8 @@ function BspRoom(container)
         }
         this.decorate(grid);
     }
-
+    // This decorator randomly applies obsticles to the room,
+    // giving them more personality
     this.decorate = function(grid)
     {
         switch (floor(random(0,10))) {
@@ -223,6 +235,7 @@ function BspRoom(container)
                 return;
         }
     }
+    // Evenly spaced out columns
     this.decorate_columns = function(grid)
     {
         var spacing = floor(random(3,5));
@@ -234,6 +247,8 @@ function BspRoom(container)
             }
         }
     }
+    // Hollow circle of random size.  At small resolutions,
+    // usually diamond shaped.
     this.decorate_circle = function(grid)
     {
         var radius = floor(random(2,min(this.w/2, this.h/2, 6)));
