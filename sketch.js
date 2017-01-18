@@ -11,288 +11,293 @@
 // (Both look cool)
 var drawingOption = 0;
 
-//Set to true to allow diagonal moves
-//This will also switch from Manhattan to Euclidean distance measures
-var allowDiagonals = true;
-
 // can the path go between the corners of two
 // walls located diagonally next to each other
 var canPassThroughCorners = false;
 
-// % of cells that are walls
-var percentWalls = (allowDiagonals ? (canPassThroughCorners ? 0.4 : 0.3) : 0.2);
+//Set to true to allow diagonal moves
+//This will also switch from Manhattan to Euclidean distance measures
+var allowDiagonals = true;
 
-// Function to delete element from the array
-function removeFromArray(arr, elt) {
-  // Could use indexOf here instead to be more efficient
-  for (var i = arr.length - 1; i >= 0; i--) {
-    if (arr[i] == elt) {
-      arr.splice(i, 1);
-    }
-  }
-}
-
-//This function returns a measure of aesthetic preference for
-//use when ordering the openSet. It is used to prioritise
-//between equal standard heuristic scores. It can therefore
-//be anything you like without affecting the ability to find
-//a minimum cost path.
-
-function visualDist(a, b) {
-  return dist(a.i, a.j, b.i, b.j);
-}
-
-// An educated guess of how far it is between two points
-
-function heuristic(a, b) {
-  var d;
-  if (allowDiagonals) {
-    d = dist(a.i, a.j, b.i, b.j);
-  } else {
-    d = abs(a.i - b.i) + abs(a.j - b.j);
-  }
-  return d;
-}
-
-// How many columns and rows?
 var cols = 50;
 var rows = 50;
 
-// This will the 2D array
-var grid = new Array(cols);
 
-// Open and closed set
-var openSet = [];
-var closedSet = [];
-
-// Start and end
-var start;
-var end;
-
-// Width and height of each cell of grid
-var w, h;
+// % of cells that are walls
+var percentWalls = (allowDiagonals ? (canPassThroughCorners ? 0.4 : 0.3) : 0.2);
 
 // Timer
 var t;
 var timings = {};
 
+function clearTimings() {
+    timings = {};
+}
+
 function startTime() {
-  t = millis();
+    t = millis();
 }
 
 function recordTime(n) {
-  if (!timings[n]) {
-    timings[n] = {
-      sum: millis() - t,
-      count: 1
-    };
-  } else {
-    timings[n].sum = timings[n].sum + millis() - t;
-    timings[n].count = timings[n].count + 1;
-  }
+    if (!timings[n]) {
+        timings[n] = {
+            sum: millis() - t,
+            count: 1
+        };
+    } else {
+        timings[n].sum = timings[n].sum + millis() - t;
+        timings[n].count = timings[n].count + 1;
+    }
 }
 
 function logTimings() {
-  for (var prop in timings) {
-    if(timings.hasOwnProperty(prop)) {
-      console.log(prop + " = " + (timings[prop].sum / timings[prop].count).toString() + " ms");
+    for (var prop in timings) {
+        if (timings.hasOwnProperty(prop)) {
+            console.log(prop + " = " + (timings[prop].sum / timings[prop].count).toString() + " ms");
+        }
     }
-  }
 }
 
-// The road taken
-var path = [];
+
+function SettingBox(label, x, y, isSet, callback) {
+    this.label = label;
+    this.x = x;
+    this.y = y;
+    this.isSet = isSet;
+    this.callback = callback;
+
+    this.show = function() {
+        //noFill();
+        ellipse(this.x + 10, this.y + 10, 20, 20);
+        //fill(0);
+        if (this.isSet) {
+            ellipse(this.x + 10, this.y + 10, 3, 3);
+        }
+        text(label, this.x + 25, this.y + 15);
+    }
+
+    this.mouseClick = function(x, y) {
+        if (x > this.x && x <= this.x + 20 &&
+            y > this.y && y <= this.y + 20) {
+            this.isSet = !this.isSet;
+            if (this.callback != null)
+                this.callback(this);
+        }
+    }
+}
+
+function Button(label, x, y, w, h, callback) {
+    this.label = label;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.callback = callback;
+
+    this.show = function() {
+        stroke(0)
+        fill(255);
+        rect(this.x, this.y, this.w, this.h);
+        text(this.label, this.x + 5, this.y + 5, this.w - 10, this.h - 10);
+    }
+
+    this.mouseClick = function(x, y) {
+        if (this.callback != null &&
+            x > this.x && x <= this.x + this.w &&
+            y > this.y && y <= this.y + this.h) {
+            this.callback(this);
+        }
+    }
+}
+
+function step(button) {
+    pauseUnpause(true);
+    stepsAllowed = 1;
+}
+
+function pauseUnpause(pause) {
+    paused = pause;
+    runPauseButton.label = paused ? "run" : "pause";
+}
+
+function runpause(button) {
+    pauseUnpause(!paused);
+}
+
+function restart(button) {
+    logTimings();
+    clearTimings();
+    initaliseSearchExample(cols, rows);
+    pauseUnpause(true);
+}
+
+function toggleDiagonals() {
+    allowDiagonals = !allowDiagonals;
+}
+
+function mouseClicked() {
+    for (var i = 0; i < uiElements.length; i++) {
+        uiElements[i].mouseClick(mouseX, mouseY);
+    }
+
+}
+
+function doGUI() {
+    for (var i = 0; i < uiElements.length; i++) {
+        uiElements[i].show();
+    }
+}
+
+
+var gamemap;
+var uiElements = [];
+var paused = true;
+var pathfinder;
+var status = "";
+var stepsAllowed = 0;
+var runPauseButton;
+
+function initaliseSearchExample(rows, cols) {
+    mapGraphic = null;
+    gamemap = new SearchMap(cols, rows, 10, 10, 410, 410, allowDiagonals, percentWalls);
+    start = gamemap.grid[0][0];
+    end = gamemap.grid[cols - 1][rows - 1];
+    start.wall = false;
+    end.wall = false;
+
+    pathfinder = new AStarPathFinder(gamemap, start, end, allowDiagonals);
+}
 
 function setup() {
-  console.log('A*');
+    startTime();
 
-  startTime();
-
-  if (getURL().toLowerCase().indexOf("fullscreen") === -1) {
-    createCanvas(400, 400);
-  } else {
-    var sz = min(windowWidth, windowHeight);
-    createCanvas(sz, sz);
-  }
-
-  // Grid cell size
-  w = width / cols;
-  h = height / rows;
-
-  // Making a 2D array
-  for (var i = 0; i < cols; i++) {
-    grid[i] = new Array(rows);
-  }
-
-  for (var i = 0; i < cols; i++) {
-    for (var j = 0; j < rows; j++) {
-      grid[i][j] = new Spot(i, j, grid);
+    if (getURL().toLowerCase().indexOf("fullscreen") === -1) {
+        createCanvas(600, 600);
+    } else {
+        var sz = min(windowWidth, windowHeight);
+        createCanvas(sz, sz);
     }
-  }
+    console.log('A*');
 
-  // Start and end
-  start = grid[0][0];
-  end = grid[cols - 1][rows - 1];
-  start.wall = false;
-  end.wall = false;
+    initaliseSearchExample(cols, rows);
 
-  // openSet starts with beginning only
-  openSet.push(start);
+    runPauseButton = new Button("run", 430, 20, 50, 30, runpause);
+    uiElements.push(runPauseButton);
+    uiElements.push(new Button("step", 430, 70, 50, 30, step));
+    uiElements.push(new Button("restart", 430, 120, 50, 30, restart));
+    uiElements.push(new SettingBox("AllowDiag", 430, 180, allowDiagonals, toggleDiagonals));
 
-  recordTime("Setup");
+    recordTime("Setup");
+}
+
+function searchStep() {
+    if (!paused || stepsAllowed > 0) {
+        startTime();
+        var result = pathfinder.step();
+        recordTime("AStar Iteration");
+        stepsAllowed--;
+
+        switch (result) {
+            case -1:
+                status = "No Solution";
+                logTimings();
+                pauseUnpause(true);
+                break;
+            case 1:
+                status = "Goal Reached!";
+                logTimings();
+                pauseUnpause(true);
+                break;
+            case 0:
+                status = "Still Searching"
+                break;
+        }
+    }
+}
+
+var mapGraphic = null;
+
+function drawMap() {
+    if (mapGraphic == null) {
+        for (var i = 0; i < gamemap.cols; i++) {
+            for (var j = 0; j < gamemap.rows; j++) {
+                if (gamemap.grid[i][j].wall) {
+                    gamemap.grid[i][j].show(color(255));
+                }
+            }
+        }
+        mapGraphic = get(gamemap.x, gamemap.y, gamemap.w, gamemap.h);
+    }
+
+    image(mapGraphic, gamemap.x, gamemap.y);
 }
 
 function draw() {
-  // Am I still searching?
-  if (openSet.length > 0) {
+
+    searchStep();
+
+    // Draw current state of everything
+    background(255);
+
+    doGUI();
+
+    text("Search status - " + status, 10, 450);
+
     startTime();
 
-    var current = findNextSpot();
+    drawMap();
 
-    // Did I finish?
-    if (current === end) {
-      noLoop();
-      console.log("DONE!");
-      createP('Completed!');
-      logTimings();
+    for (var i = 0; i < pathfinder.closedSet.length; i++) {
+        pathfinder.closedSet[i].show(color(255, 0, 0, 50));
     }
 
-    // Best option moves from openSet to closedSet
-    removeFromArray(openSet, current);
-    closedSet.push(current);
+    var infoNode = null;
 
-    // Check all the neighbors
-    addNeighborsToOpenSet(current);
-
-    recordTime("Algorithm");
-  } else {
-    // Uh oh, no solution
-    noLoop();
-    console.log('no solution');
-    createP('No solution.');
-    logTimings();
-    return;
-  }
-
-  drawGrid();
-
-  path = calcPath(current);
-  drawPath(path);
-}
-
-
-// Find next spot
-function findNextSpot() {
-  // Best next option
-  var winner = 0;
-  for (var i = 1; i < openSet.length; i++) {
-    if (openSet[i].f < openSet[winner].f) {
-      winner = i;
-    }
-    //if we have a tie according to the standard heuristic
-    if (openSet[i].f == openSet[winner].f) {
-      //Prefer to explore options with longer known paths (closer to goal)
-      if (openSet[i].g > openSet[winner].g) {
-        winner = i;
-      }
-      //if we're using Manhattan distances then also break ties
-      //of the known distance measure by using the visual heuristic.
-      //This ensures that the search concentrates on routes that look
-      //more direct. This makes no difference to the actual path distance
-      //but improves the look for things like games or more closely
-      //approximates the real shortest path if using grid sampled data for
-      //planning natural paths.
-      if (!allowDiagonals) {
-        if (openSet[i].g == openSet[winner].g && openSet[i].vh < openSet[winner].vh) {
-          winner = i;
+    for (var i = 0; i < pathfinder.openSet.length; i++) {
+        var node = pathfinder.openSet[i];
+        node.show(color(0, 255, 0, 50));
+        if (mouseX > node.x && mouseX < node.x + node.width &&
+            mouseY > node.y && mouseY < node.y + node.height) {
+            infoNode = node;
         }
-      }
     }
-  }
-  return openSet[winner];
-}
+    recordTime("Draw Grid");
 
-// Find any viable neighbors to search through
-function addNeighborsToOpenSet(current) {
-  var neighbors = current.getNeighbors();
+    fill(0);
+    if (infoNode != null) {
+        text("f = " + infoNode.f, 430, 230);
+        text("g = " + infoNode.g, 430, 250);
+        text("h = " + infoNode.h, 430, 270);
+        text("vh = " + infoNode.vh, 430, 290);
 
-  for (var i = 0; i < neighbors.length; i++) {
-    var neighbor = neighbors[i];
-
-    // Valid next spot?
-    if (!closedSet.includes(neighbor)) {
-      var tempG = current.g + heuristic(neighbor, current);
-
-      // Is this a better path than before?
-      if (!openSet.includes(neighbor)) {
-        openSet.push(neighbor);
-      } else if (tempG >= neighbor.g) {
-        // No, it's not a better path
-        continue;
-      }
-
-      neighbor.g = tempG;
-      neighbor.h = heuristic(neighbor, end);
-      if (allowDiagonals) {
-        neighbor.vh = visualDist(neighbor, end);
-      }
-      neighbor.f = neighbor.g + neighbor.h;
-      neighbor.previous = current;
     }
-  }
+
+    var path = calcPath(pathfinder.lastCheckedNode);
+    drawPath(path);
 }
 
-
-// Draw current state of everything
-function drawGrid() {
-  startTime();
-
-  background(255);
-  for (var i = 0; i < cols; i++) {
-    for (var j = 0; j < rows; j++) {
-      grid[i][j].show();
+function calcPath(endNode) {
+    startTime();
+    // Find the path by working backwards
+    path = [];
+    var temp = endNode;
+    path.push(temp);
+    while (temp.previous) {
+        path.push(temp.previous);
+        temp = temp.previous;
     }
-  }
-  for (var i = 0; i < closedSet.length; i++) {
-    closedSet[i].show(color(255, 0, 0, 50));
-  }
-  for (var i = 0; i < openSet.length; i++) {
-    openSet[i].show(color(0, 255, 0, 50));
-  }
-
-  recordTime("Draw Grid");
+    recordTime("Calc Path");
+    return path
 }
 
-// Find the path by working backwards
-function calcPath(current) {
-  startTime();
-
-  path = [];
-  var temp = current;
-  path.push(temp);
-  while (temp.previous) {
-    path.push(temp.previous);
-    temp = temp.previous;
-  }
-
-  recordTime("Calc Path");
-
-  return path;
-}
-
-// Drawing path as continuous line
 function drawPath(path) {
-  startTime();
-
-  noFill();
-  stroke(255, 0, 200);
-  strokeWeight(w / 2);
-
-  beginShape();
-  for (var i = 0; i < path.length; i++) {
-    vertex(path[i].i * w + w / 2, path[i].j * h + h / 2);
-  }
-  endShape();
-
-  recordTime("Draw Path");
+    // Drawing path as continuous line
+    noFill();
+    stroke(255, 0, 200);
+    strokeWeight(gamemap.w / gamemap.cols / 2);
+    beginShape();
+    for (var i = 0; i < path.length; i++) {
+        vertex(path[i].x + path[i].width / 2, path[i].y + path[i].height / 2);
+    }
+    endShape();
 }
