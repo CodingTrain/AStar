@@ -68,11 +68,16 @@ function SettingBox(label, x, y, isSet, callback) {
 
     this.show = function() {
         //noFill();
+        strokeWeight(1);
+        stroke(0);
+        noFill();
         ellipse(this.x + 10, this.y + 10, 20, 20);
-        //fill(0);
         if (this.isSet) {
+            fill(0);
             ellipse(this.x + 10, this.y + 10, 3, 3);
         }
+        fill(0);
+        noStroke();
         text(label, this.x + 25, this.y + 15);
     }
 
@@ -95,9 +100,12 @@ function Button(label, x, y, w, h, callback) {
     this.callback = callback;
 
     this.show = function() {
-        stroke(0)
-        fill(255);
+        stroke(0);
+        strokeWeight(1);
+        noFill();
         rect(this.x, this.y, this.w, this.h);
+        fill(0);
+        noStroke();
         text(this.label, this.x + 5, this.y + 5, this.w - 10, this.h - 10);
     }
 
