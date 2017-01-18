@@ -38,7 +38,7 @@ function Spot(i, j, x, y, width, height, isWall, grid) {
             noStroke();
 
             if (drawingOption === 0) {
-                ellipse(this.x, this.y, this.width * 0.5, this.height * 0.5);
+                ellipse(this.x + this.width * 0.5, this.y + this.width * 0.5, this.width * 0.5, this.height * 0.5);
             } else {
                 rect(this.x, this.y, this.width, this.height);
             }
