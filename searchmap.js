@@ -1,4 +1,4 @@
-function SearchMap(cols, rows, x, y, w, h, allowDiagonals) {
+function SearchMap(cols, rows, x, y, w, h, allowDiagonals, wallRatio ) {
     // How many columns and rows?
     this.cols = cols;
     this.rows = rows;
@@ -19,14 +19,14 @@ function SearchMap(cols, rows, x, y, w, h, allowDiagonals) {
 
     for (var i = 0; i < cols; i++) {
         for (var j = 0; j < rows; j++) {
-            var isWall = random(1.0) < (allowDiagonals ? 0.4 : 0.2);
-            this.grid[i][j] = new Spot(i, j, x + i * w / cols, y + j * h / rows, w / cols, h / rows, isWall);
+            var isWall = random(1.0) < wallRatio;
+            this.grid[i][j] = new Spot(i, j, x + i * w / cols, y + j * h / rows, w / cols, h / rows, isWall, this.grid);
         }
     }
 
-    for (var i = 0; i < cols; i++) {
-        for (var j = 0; j < rows; j++) {
-            this.grid[i][j].addNeighbors(this.grid, allowDiagonals);
-        }
-    }
+    //for (var i = 0; i < cols; i++) {
+    //    for (var j = 0; j < rows; j++) {
+    //        this.grid[i][j].addNeighbors(this.grid, allowDiagonals);
+    //    }
+    //}
 }

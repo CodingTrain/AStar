@@ -5,12 +5,55 @@
 // Part 2: https://youtu.be/EaZxUCWAjb0
 // Part 3: https://youtu.be/jwRT4PCT6RU
 
+// 2 options for drawing the walls
+// option 0 = corn maze
+// option 1 = castle
+// (Both look cool)
+var drawingOption = 0;
+
+// can the path go between the corners of two
+// walls located diagonally next to each other
+var canPassThroughCorners = false;
+
 //Set to true to allow diagonal moves
 //This will also switch from Manhattan to Euclidean distance measures
 var allowDiagonals = true;
 
 var cols = 50;
 var rows = 50;
+
+
+// % of cells that are walls
+var percentWalls = (allowDiagonals ? (canPassThroughCorners ? 0.4 : 0.3) : 0.2);
+
+// Timer
+var t;
+var timings = {};
+
+function startTime() {
+  t = millis();
+}
+
+function recordTime(n) {
+  if (!timings[n]) {
+    timings[n] = {
+      sum: millis() - t,
+      count: 1
+    };
+  } else {
+    timings[n].sum = timings[n].sum + millis() - t;
+    timings[n].count = timings[n].count + 1;
+  }
+}
+
+function logTimings() {
+  for (var prop in timings) {
+    if(timings.hasOwnProperty(prop)) {
+      console.log(prop + " = " + (timings[prop].sum / timings[prop].count).toString() + " ms");
+    }
+  }
+}
+
 
 // Function to delete element from the array
 function removeFromArray(arr, elt) {
@@ -120,7 +163,7 @@ var stepsAllowed = 0;
 var runPauseButton;
 
 function initaliseSearchExample(rows, cols) {
-    gamemap = new SearchMap(cols, rows, 10, 10, 410, 410, allowDiagonals);
+    gamemap = new SearchMap(cols, rows, 10, 10, 410, 410, allowDiagonals, percentWalls);
     start = gamemap.grid[0][0];
     end = gamemap.grid[cols - 1][rows - 1];
     start.wall = false;
@@ -130,7 +173,14 @@ function initaliseSearchExample(rows, cols) {
 }
 
 function setup() {
+  startTime();
+
+  if (getURL().toLowerCase().indexOf("fullscreen") === -1) {
     createCanvas(600, 600);
+  } else {
+    var sz = min(windowWidth, windowHeight);
+    createCanvas(sz, sz);
+  }
     console.log('A*');
 
     initaliseSearchExample(cols, rows);
@@ -141,6 +191,7 @@ function setup() {
     uiElements.push(new Button("restart", 430, 120, 50, 30, restart));
     uiElements.push(new SettingBox("AllowDiag", 430, 180, allowDiagonals, toggleDiagonals));
 
+    recordTime("Setup");
 }
 
 function draw() {
@@ -151,16 +202,21 @@ function draw() {
     doGUI();
 
     if (!paused || stepsAllowed > 0) {
+      startTime();
         var result = pathfinder.step();
-
+        recordTime("AStar Search");
         stepsAllowed--;
 
         switch(result){
           case -1:
             status = "No Solution";
+            logTimings();
+            pauseUnpause(true);
             break;
           case 1:
             status = "Goal Reached!";
+            logTimings();
+            pauseUnpause(true);
             break;
           case 0:
             status = "Still Searching"
@@ -170,6 +226,7 @@ function draw() {
 
     text("Search status - " + status, 10, 450);
 
+    startTime();
     for (var i = 0; i < gamemap.cols; i++) {
         for (var j = 0; j < gamemap.rows; j++) {
             gamemap.grid[i][j].show(color(255));
@@ -190,6 +247,7 @@ function draw() {
             infoNode = node;
           }
     }
+    recordTime("Draw Grid");
 
     fill(0);
     if( infoNode != null ){
@@ -200,6 +258,7 @@ function draw() {
 
     }
 
+    startTime();
     // Find the path by working backwards
     path = [];
     var temp = pathfinder.lastCheckedNode;
@@ -208,11 +267,7 @@ function draw() {
         path.push(temp.previous);
         temp = temp.previous;
     }
-
-
-    // for (var i = 0; i < path.length; i++) {
-    // path[i].show(color(0, 0, 255));
-    //}
+    recordTime("Calc Path");
 
     // Drawing path as continuous line
     noFill();

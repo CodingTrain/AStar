@@ -81,36 +81,33 @@ function AStarPathFinder(map, start, end, allowDiagonals) {
             this.closedSet.push(current);
 
             // Check all the neighbors
-            var neighbors = current.neighbors;
+            var neighbors = current.getNeighbors();
+
             for (var i = 0; i < neighbors.length; i++) {
                 var neighbor = neighbors[i];
 
                 // Valid next spot?
-                if (!this.closedSet.includes(neighbor) && !neighbor.wall) {
+                if (!this.closedSet.includes(neighbor)) {
                     var tempG = current.g + this.heuristic(neighbor, current);
 
                     // Is this a better path than before?
-                    var newPath = false;
-                    if (this.openSet.includes(neighbor)) {
-                        if (tempG < neighbor.g) {
-                            neighbor.g = tempG;
-                            newPath = true;
-                        }
-                    } else {
-                        neighbor.g = tempG;
-                        newPath = true;
-                        this.openSet.push(neighbor);
+                    var tempG = current.g + this.heuristic(neighbor, current);
+
+                    // Is this a better path than before?
+                    if (!this.openSet.includes(neighbor)) {
+                      this.openSet.push(neighbor);
+                    } else if (tempG >= neighbor.g) {
+                      // No, it's not a better path
+                      continue;
                     }
 
-                    // Yes, it's a better path
-                    if (newPath) {
-                        neighbor.h = this.heuristic(neighbor, this.end);
-                        if (!this.allowDiagonals) {
-                            neighbor.vh = this.visualDist(neighbor, this.end);
-                        }
-                        neighbor.f = neighbor.g + neighbor.h;
-                        neighbor.previous = current;
+                    neighbor.g = tempG;
+                    neighbor.h = this.heuristic(neighbor, end);
+                    if (allowDiagonals) {
+                      neighbor.vh = this.visualDist(neighbor, end);
                     }
+                    neighbor.f = neighbor.g + neighbor.h;
+                    neighbor.previous = current;
                 }
 
             }
