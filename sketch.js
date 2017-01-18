@@ -167,7 +167,7 @@ var runPauseButton;
 
 function initaliseSearchExample(rows, cols) {
     mapGraphic = null;
-    gamemap = new SearchMap(cols, rows, 10, 10, 410, 410, allowDiagonals, percentWalls);
+    gamemap = new MapFactory().getMap(cols, rows, 10, 10, 410, 410, allowDiagonals, percentWalls);
     start = gamemap.grid[0][0];
     end = gamemap.grid[cols - 1][rows - 1];
     start.wall = false;
