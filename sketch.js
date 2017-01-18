@@ -59,17 +59,6 @@ function logTimings() {
 }
 
 
-// Function to delete element from the array
-function removeFromArray(arr, elt) {
-    // Could use indexOf here instead to be more efficient
-    for (var i = arr.length - 1; i >= 0; i--) {
-        if (arr[i] == elt) {
-            arr.splice(i, 1);
-        }
-    }
-}
-
-
 function SettingBox(label, x, y, isSet, callback) {
     this.label = label;
     this.x = x;
@@ -229,15 +218,15 @@ function searchStep() {
 var mapGraphic = null;
 
 function drawMap() {
-    if( mapGraphic == null ) {
-      for (var i = 0; i < gamemap.cols; i++) {
-          for (var j = 0; j < gamemap.rows; j++) {
-              if( gamemap.grid[i][j].wall ) {
-                gamemap.grid[i][j].show(color(255));
-              }
-          }
-      }
-      mapGraphic = get(gamemap.x,gamemap.y,gamemap.w,gamemap.h);
+    if (mapGraphic == null) {
+        for (var i = 0; i < gamemap.cols; i++) {
+            for (var j = 0; j < gamemap.rows; j++) {
+                if (gamemap.grid[i][j].wall) {
+                    gamemap.grid[i][j].show(color(255));
+                }
+            }
+        }
+        mapGraphic = get(gamemap.x, gamemap.y, gamemap.w, gamemap.h);
     }
 
     image(mapGraphic, gamemap.x, gamemap.y);
@@ -283,17 +272,25 @@ function draw() {
 
     }
 
+    var path = calcPath(pathfinder.lastCheckedNode);
+    drawPath(path);
+}
+
+function calcPath(endNode) {
     startTime();
     // Find the path by working backwards
     path = [];
-    var temp = pathfinder.lastCheckedNode;
+    var temp = endNode;
     path.push(temp);
     while (temp.previous) {
         path.push(temp.previous);
         temp = temp.previous;
     }
     recordTime("Calc Path");
+    return path
+}
 
+function drawPath(path) {
     // Drawing path as continuous line
     noFill();
     stroke(255, 0, 200);
@@ -303,5 +300,4 @@ function draw() {
         vertex(path[i].x + path[i].width / 2, path[i].y + path[i].height / 2);
     }
     endShape();
-
 }

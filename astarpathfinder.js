@@ -1,3 +1,4 @@
+
 function AStarPathFinder(map, start, end, allowDiagonals) {
     this.map = map;
     this.lastCheckedNode = start;
@@ -31,6 +32,15 @@ function AStarPathFinder(map, start, end, allowDiagonals) {
         return d;
     }
 
+    // Function to delete element from the array
+    this.removeFromArray = function(arr, elt) {
+        // Could use indexOf here instead to be more efficient
+        for (var i = arr.length - 1; i >= 0; i--) {
+            if (arr[i] == elt) {
+                arr.splice(i, 1);
+            }
+        }
+    }
 
     //Run one finding step.
     //returns 0 if search ongoing
@@ -77,7 +87,7 @@ function AStarPathFinder(map, start, end, allowDiagonals) {
             }
 
             // Best option moves from openSet to closedSet
-            removeFromArray(this.openSet, current);
+            this.removeFromArray(this.openSet, current);
             this.closedSet.push(current);
 
             // Check all the neighbors
@@ -95,16 +105,16 @@ function AStarPathFinder(map, start, end, allowDiagonals) {
 
                     // Is this a better path than before?
                     if (!this.openSet.includes(neighbor)) {
-                      this.openSet.push(neighbor);
+                        this.openSet.push(neighbor);
                     } else if (tempG >= neighbor.g) {
-                      // No, it's not a better path
-                      continue;
+                        // No, it's not a better path
+                        continue;
                     }
 
                     neighbor.g = tempG;
                     neighbor.h = this.heuristic(neighbor, end);
                     if (allowDiagonals) {
-                      neighbor.vh = this.visualDist(neighbor, end);
+                        neighbor.vh = this.visualDist(neighbor, end);
                     }
                     neighbor.f = neighbor.g + neighbor.h;
                     neighbor.previous = current;
