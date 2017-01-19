@@ -113,7 +113,7 @@ function AStarPathFinder(map, start, end, allowDiagonals) {
 
                     neighbor.g = tempG;
                     neighbor.h = this.heuristic(neighbor, end);
-                    if (allowDiagonals) {
+                    if (!allowDiagonals) {
                         neighbor.vh = this.visualDist(neighbor, end);
                     }
                     neighbor.f = neighbor.g + neighbor.h;
