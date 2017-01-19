@@ -168,6 +168,8 @@ function Spot(i, j, x, y, width, height, isWall, grid) {
                             //one or both are open so we can move past
                             this.neighbors.push(node);
                         }
+                    }else {
+                        this.neighbors.push(node);
                     }
                 }
                 if (node.wall) {
