@@ -11,6 +11,11 @@
 // (Both look cool)
 var drawingOption = 0;
 
+
+//Set to true to allow diagonal moves
+//This will also switch from Manhattan to Euclidean distance measures
+var allowDiagonals = true;
+
 // can the path go between the corners of two
 // walls located diagonally next to each other
 var canPassThroughCorners = false;
@@ -117,6 +122,12 @@ function Button(label, x, y, w, h, callback) {
         }
     }
 }
+
+  // Start and end
+  // start = grid[0][0];
+  // end = grid[cols - 1][rows - 1];
+  // start.wall = false;
+  // end.wall = false;
 
 function step(button) {
     pauseUnpause(true);

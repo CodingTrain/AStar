@@ -31,6 +31,9 @@ function Spot(i, j, x, y, width, height, isWall, grid) {
     // Am I an wall?
     this.wall = isWall;
 
+    // Did the maze algorithm already visit me?
+    this.visited = false;
+
     // Display me
     this.show = function(color) {
         if (this.wall) {
