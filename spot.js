@@ -76,175 +76,54 @@ function Spot(i, j, x, y, width, height, isWall, grid) {
     }
 
     this.getNeighbors = function() {
-        if (!this.neighbors) {
-            this.addNeighbors(this.grid);
-        }
-        return this.neighbors;
+      if (!this.neighbors) {
+        this.addNeighbors();
+      }
+      return this.neighbors;
     }
 
     // Figure out who my neighbors are
-    this.addNeighbors = function(grid) {
-        this.neighbors = [];
-        var i = this.i;
-        var j = this.j;
+    this.addNeighbors = function() {
+      this.neighbors = [];
+      var nodeI = this.i;
+      var nodeJ = this.j;
 
-        // right
-        if (i < cols - 1) {
-            var n = grid[i + 1][j];
-            if (!n.wall) {
+      for(var i = -1; i <= 1; i++){
+        for(var j = -1; j <= 1; j++){
+          if((!allowDiagonals && i != 0 && j != 0) || nodeI == i && nodeJ == j)
+            continue;          
+
+          var n = this.grid[nodeI + i][nodeJ + j];
+          if(!n.wall){
+            if (canPassThroughCorners) {
+              this.neighbors.push(n);
+            } else {
+              var top = this.grid[nodeI][nodeJ + j];
+              var left = this.grid[nodeI + i][nodeJ];
+              if (!(top.wall && left.wall)) {
                 this.neighbors.push(n);
+              }
             }
+          }
         }
-        // left
-        if (i > 0) {
-            var n = grid[i - 1][j];
-            if (!n.wall) {
-                this.neighbors.push(n);
-            }
-        }
-        // bottom
-        if (j < rows - 1) {
-            var n = grid[i][j + 1];
-            if (!n.wall) {
-                this.neighbors.push(n);
-            }
-        }
-        // top
-        if (j > 0) {
-            var n = grid[i][j - 1];
-            if (!n.wall) {
-                this.neighbors.push(n);
-            }
-        }
-        if (allowDiagonals) {
-            // top-left
-            if (i > 0 && j > 0) {
-                var n = grid[i - 1][j - 1];
-                if (!n.wall) {
-                    if (canPassThroughCorners) {
-                        this.neighbors.push(n);
-                    } else {
-                        var top = grid[i][j - 1];
-                        var left = grid[i - 1][j];
-                        if (!(top.wall && left.wall)) {
-                            this.neighbors.push(n);
-                        }
-                    }
-                }
-            }
-            // top-right
-            if (i < cols - 1 && j > 0) {
-                var n = grid[i + 1][j - 1];
-                if (!n.wall) {
-                    if (canPassThroughCorners) {
-                        this.neighbors.push(n);
-                    } else {
-                        var top = grid[i][j - 1];
-                        var right = grid[i + 1][j];
-                        if (!(top.wall && right.wall)) {
-                            this.neighbors.push(n);
-                        }
-                    }
-                }
-            }
-            // bottom-left
-            if (i > 0 && j < rows - 1) {
-                var n = grid[i - 1][j + 1];
-                if (!n.wall) {
-                    if (canPassThroughCorners) {
-                        this.neighbors.push(n);
-                    } else {
-                        var bottom = grid[i][j + 1];
-                        var left = grid[i - 1][j];
-                        if (!(bottom.wall && left.wall)) {
-                            this.neighbors.push(n);
-                        }
-                    }
-                }
-            }
-            // bottom-right
-            if (i < cols - 1 && j < rows - 1) {
-                var n = grid[i + 1][j + 1];
-                if (!n.wall) {
-                    if (canPassThroughCorners) {
-                        this.neighbors.push(n);
-                    } else {
-                        var bottom = grid[i][j + 1];
-                        var right = grid[i + 1][j];
-                        if (!(bottom.wall && right.wall)) {
-                            this.neighbors.push(n);
-                        }
-                    }
-                }
-            }
-        }
+      }
     }
 
     this.getNeighboringWalls = function(grid) {
-        if (this.neighboringWalls) {
-            return this.neighboringWalls;
-        }
+      this.neighboringWalls = [];
 
-        this.neighboringWalls = [];
-        var i = this.i;
-        var j = this.j;
+      var nodeI = this.i;
+      var nodeJ = this.j;
 
-        // right
-        if (i < cols - 1) {
-            var n = grid[i + 1][j];
-            if (n.wall) {
-                this.neighboringWalls.push(n);
-            }
+      for(var i = -1; i <= 1; i++){
+        for(var j = -1; j <= 1; j++){
+          if(nodeI == i && nodeJ == j)
+            continue;          
+
+          var n = this.grid[nodeI + i][nodeJ + j];
+          if(n.wall)
+            this.neighboringWalls.push(n);
         }
-        // left
-        if (i > 0) {
-            var n = grid[i - 1][j];
-            if (n.wall) {
-                this.neighboringWalls.push(n);
-            }
-        }
-        // bottom
-        if (j < rows - 1) {
-            var n = grid[i][j + 1];
-            if (n.wall) {
-                this.neighboringWalls.push(n);
-            }
-        }
-        // top
-        if (j > 0) {
-            var n = grid[i][j - 1];
-            if (n.wall) {
-                this.neighboringWalls.push(n);
-            }
-        }
-        // top-left
-        if (i > 0 && j > 0) {
-            var n = grid[i - 1][j - 1];
-            if (n.wall) {
-                this.neighboringWalls.push(n);
-            }
-        }
-        // top-right
-        if (i < cols - 1 && j > 0) {
-            var n = grid[i + 1][j - 1];
-            if (n.wall) {
-                this.neighboringWalls.push(n);
-            }
-        }
-        // bottom-left
-        if (i > 0 && j < rows - 1) {
-            var n = grid[i - 1][j + 1];
-            if (n.wall) {
-                this.neighboringWalls.push(n);
-            }
-        }
-        // bottom-right
-        if (i < cols - 1 && j < rows - 1) {
-            var n = grid[i + 1][j + 1];
-            if (n.wall) {
-                this.neighboringWalls.push(n);
-            }
-        }
-        return this.neighboringWalls;
+      }
     }
 }
