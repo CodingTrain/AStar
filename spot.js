@@ -34,10 +34,6 @@ function Spot(i, j, x, y, width, height, isWall, grid) {
     // Did the maze algorithm already visit me?
     this.visited = false;
 
-    if (random(1) < percentWalls) {
-      this.wall = true;
-    }
-
     // Display me
     this.show = function(color) {
         if (this.wall) {
