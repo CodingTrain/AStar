@@ -49,13 +49,6 @@ function BspMap(cols, rows, x, y, w, h, allowDiagonals, percentWalls){
         // Write the halls into the grid
         this.carvePath(this.mainTree, this.grid);
         this.carveEntranceAndExit(this.grid, this.start, this.end);
-
-        //Hook up neighbors
-        for (var i = 0; i < this.cols; i++) {
-            for (var j = 0; j < this.rows; j++) {
-                this.grid[i][j].addNeighbors(this.grid, this.allowDiagonals);
-            }
-        }
     }
 
     // Carve out the hallways which connect rooms
