@@ -20,10 +20,6 @@ var allowDiagonals = true;
 // walls located diagonally next to each other
 var canPassThroughCorners = false;
 
-//Set to true to allow diagonal moves
-//This will also switch from Manhattan to Euclidean distance measures
-var allowDiagonals = true;
-
 var cols = 50;
 var rows = 50;
 
