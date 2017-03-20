@@ -98,8 +98,6 @@ function AStarPathFinder(map, start, end, allowDiagonals) {
 
                 // Valid next spot?
                 if (!this.closedSet.includes(neighbor)) {
-                    var tempG = current.g + this.heuristic(neighbor, current);
-
                     // Is this a better path than before?
                     var tempG = current.g + this.heuristic(neighbor, current);
 
