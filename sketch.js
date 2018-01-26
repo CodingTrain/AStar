@@ -172,7 +172,7 @@ var status = "";
 var stepsAllowed = 0;
 var runPauseButton;
 
-function initaliseSearchExample(rows, cols) {
+function initaliseSearchExample(cols, rows) {
     mapGraphic = null;
     gamemap = new MapFactory().getMap(cols, rows, 10, 10, 410, 410, allowDiagonals, percentWalls);
     start = gamemap.grid[0][0];
