@@ -119,6 +119,44 @@ function Button(label, x, y, w, h, callback) {
     }
 }
 
+function rowNumBox(label, x, y, w, h) {
+    this.label = label;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+
+    this.show = function() {
+        stroke(0);
+        strokeWeight(1);
+        noFill();
+        rect(this.x, this.y, this.w, this.h);
+        fill(0);
+        noStroke();
+        text(this.label + rows, this.x + 5, this.y + 5, this.w - 10, this.h - 10);
+    }
+    this.mouseClick = function(x, y) {
+    }
+}
+function colNumBox(label, x, y, w, h) {
+    this.label = label;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+
+    this.show = function() {
+        stroke(0);
+        strokeWeight(1);
+        noFill();
+        rect(this.x, this.y, this.w, this.h);
+        fill(0);
+        noStroke();
+        text(this.label + cols, this.x + 5, this.y + 5, this.w - 10, this.h - 10);
+    }
+    this.mouseClick = function(x, y) {
+    }
+}
   // Start and end
   // start = grid[0][0];
   // end = grid[cols - 1][rows - 1];
@@ -163,6 +201,21 @@ function doGUI() {
     }
 }
 
+function decRows() {
+    rows = rows - 10; 
+}
+
+function incRows() {
+    rows = rows + 10; 
+}
+
+function decCols() {
+    cols = cols - 10; 
+}
+
+function incCols() {
+    cols = cols + 10; 
+}
 
 var gamemap;
 var uiElements = [];
@@ -171,10 +224,9 @@ var pathfinder;
 var status = "";
 var stepsAllowed = 0;
 var runPauseButton;
-
 function initaliseSearchExample(rows, cols) {
     mapGraphic = null;
-    gamemap = new MapFactory().getMap(cols, rows, 10, 10, 410, 410, allowDiagonals, percentWalls);
+    gamemap = new MapFactory().getMap(cols, rows, 200, 10, 500,500, allowDiagonals, percentWalls);
     start = gamemap.grid[0][0];
     end = gamemap.grid[cols - 1][rows - 1];
     start.wall = false;
@@ -187,7 +239,7 @@ function setup() {
     startTime();
 
     if (getURL().toLowerCase().indexOf("fullscreen") === -1) {
-        createCanvas(600, 600);
+        createCanvas(800, 800);
     } else {
         var sz = min(windowWidth, windowHeight);
         createCanvas(sz, sz);
@@ -196,11 +248,20 @@ function setup() {
 
     initaliseSearchExample(cols, rows);
 
-    runPauseButton = new Button("run", 430, 20, 50, 30, runpause);
+    runPauseButton = new Button("run", 10, 20, 50, 30, runpause);
     uiElements.push(runPauseButton);
-    uiElements.push(new Button("step", 430, 70, 50, 30, step));
-    uiElements.push(new Button("restart", 430, 120, 50, 30, restart));
-    uiElements.push(new SettingBox("AllowDiag", 430, 180, allowDiagonals, toggleDiagonals));
+    uiElements.push(new Button("step", 10, 70, 50, 30, step));
+    uiElements.push(new Button("restart", 10, 120, 50, 30, restart));
+    uiElements.push(new SettingBox("AllowDiag", 10, 180, allowDiagonals, toggleDiagonals));
+
+    uiElements.push(new Button("<", 0, 250, 15, 30, decRows));
+    uiElements.push(new rowNumBox("Rows: ", 15, 250, 80, 30));
+    uiElements.push(new Button(">", 95 ,250, 15, 30, incRows));
+    
+    
+    uiElements.push(new Button("<", 0, 300, 15, 30, decCols));
+    uiElements.push(new colNumBox("Cols: ", 15, 300, 80, 30));
+    uiElements.push(new Button(">", 95, 300, 15, 30, incCols));
 
     recordTime("Setup");
 }
