@@ -87,7 +87,8 @@ function AStarPathFinder(map, start, end, allowDiagonals) {
             }
 
             // Best option moves from openSet to closedSet
-            this.removeFromArray(this.openSet, current);
+            // this.removeFromArray(this.openSet, current);
+            this.openSet.splice(winner, 1);
             this.closedSet.push(current);
 
             // Check all the neighbors
